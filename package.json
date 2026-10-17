@@ -1,0 +1,30 @@
+{
+  "name": "narravo",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@10.33.0",
+  "scripts": {
+    "dev": "node scripts/desktop.mjs dev",
+    "dev:web": "pnpm --filter @narravo/desktop dev",
+    "build": "pnpm --filter @narravo/desktop build",
+    "desktop:build": "node scripts/desktop.mjs build",
+    "engine:bundle": "node scripts/bundle-engine.mjs",
+    "lint": "prettier --check apps/desktop/src scripts/*.mjs tests/e2e/*.ts playwright.config.ts && pnpm typecheck && pnpm contracts:check",
+    "typecheck": "pnpm --filter @narravo/desktop typecheck",
+    "test": "pnpm --filter @narravo/desktop test",
+    "test:e2e": "playwright test",
+    "contracts:generate": "node scripts/contracts.mjs",
+    "contracts:check": "node scripts/contracts.mjs --check",
+    "engine:setup": "node scripts/setup-engine.mjs",
+    "engine:test": "node scripts/engine-check.mjs",
+    "engine:lint": "node scripts/engine-check.mjs --lint",
+    "desktop:check": "node scripts/desktop-check.mjs",
+    "format": "prettier --write apps/desktop/src scripts/*.mjs tests/e2e/*.ts playwright.config.ts"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.0",
+    "@types/node": "^24.19.2",
+    "json-schema-to-typescript": "^15.0.4",
+    "prettier": "3.9.10"
+  }
+}

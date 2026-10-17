@@ -1,0 +1,4362 @@
+{
+  "$defs": {
+    "Accept": {
+      "additionalProperties": false,
+      "properties": {
+        "generation_id": {
+          "title": "Generation Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "candidate_revision": {
+          "title": "Candidate Revision",
+          "type": "string"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer"
+        },
+        "end": {
+          "minimum": 0,
+          "title": "End",
+          "type": "integer"
+        },
+        "edited_text": {
+          "maxLength": 100000,
+          "minLength": 1,
+          "title": "Edited Text",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Idempotency Key",
+          "type": "string"
+        }
+      },
+      "required": [
+        "generation_id",
+        "expected_snapshot",
+        "candidate_revision",
+        "start",
+        "end",
+        "edited_text",
+        "idempotency_key"
+      ],
+      "title": "Accept",
+      "type": "object"
+    },
+    "AudioData": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "mime_type": {
+          "enum": [
+            "audio/wav",
+            "audio/mpeg"
+          ],
+          "title": "Mime Type",
+          "type": "string"
+        },
+        "content_b64": {
+          "title": "Content B64",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id",
+        "mime_type",
+        "content_b64"
+      ],
+      "title": "AudioData",
+      "type": "object"
+    },
+    "AudioPlan": {
+      "additionalProperties": false,
+      "properties": {
+        "branch_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Branch Id"
+        },
+        "chapter_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Chapter Id"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "segments": {
+          "items": {
+            "$ref": "#/$defs/AudioSegment"
+          },
+          "title": "Segments",
+          "type": "array"
+        },
+        "total_segments": {
+          "title": "Total Segments",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "text",
+        "segments",
+        "total_segments"
+      ],
+      "title": "AudioPlan",
+      "type": "object"
+    },
+    "AudioRead": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Asset Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "asset_id"
+      ],
+      "title": "AudioRead",
+      "type": "object"
+    },
+    "AudioSegment": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Asset Id",
+          "type": "string"
+        },
+        "start": {
+          "title": "Start",
+          "type": "integer"
+        },
+        "end": {
+          "title": "End",
+          "type": "integer"
+        },
+        "duration": {
+          "title": "Duration",
+          "type": "number"
+        },
+        "mime_type": {
+          "enum": [
+            "audio/wav",
+            "audio/mpeg"
+          ],
+          "title": "Mime Type",
+          "type": "string"
+        },
+        "cache_hit": {
+          "default": false,
+          "title": "Cache Hit",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "asset_id",
+        "start",
+        "end",
+        "duration",
+        "mime_type"
+      ],
+      "title": "AudioSegment",
+      "type": "object"
+    },
+    "BackupCreate": {
+      "additionalProperties": false,
+      "properties": {
+        "include_audio": {
+          "default": false,
+          "title": "Include Audio",
+          "type": "boolean"
+        }
+      },
+      "title": "BackupCreate",
+      "type": "object"
+    },
+    "BookCharacterCopy": {
+      "additionalProperties": false,
+      "properties": {
+        "fields": {
+          "items": {
+            "enum": [
+              "introduction",
+              "background"
+            ],
+            "type": "string"
+          },
+          "maxItems": 2,
+          "minItems": 1,
+          "title": "Fields",
+          "type": "array"
+        },
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "chapter_id": {
+          "title": "Chapter Id",
+          "type": "string"
+        },
+        "offset": {
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "planning_id": {
+          "title": "Planning Id",
+          "type": "string"
+        },
+        "include_author": {
+          "default": false,
+          "title": "Include Author",
+          "type": "boolean"
+        },
+        "confirm": {
+          "default": false,
+          "title": "Confirm",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "branch_id",
+        "expected_snapshot",
+        "chapter_id",
+        "offset",
+        "planning_id"
+      ],
+      "title": "BookCharacterCopy",
+      "type": "object"
+    },
+    "BookCreate": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "default": "未命名作品",
+          "maxLength": 120,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "title": "BookCreate",
+      "type": "object"
+    },
+    "BookSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "book_id": {
+          "title": "Book Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "origin_type": {
+          "enum": [
+            "original",
+            "imported"
+          ],
+          "title": "Origin Type",
+          "type": "string"
+        },
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "word_count": {
+          "title": "Word Count",
+          "type": "integer"
+        },
+        "chapter_count": {
+          "title": "Chapter Count",
+          "type": "integer"
+        },
+        "updated_at": {
+          "title": "Updated At",
+          "type": "string"
+        }
+      },
+      "required": [
+        "book_id",
+        "title",
+        "origin_type",
+        "branch_id",
+        "word_count",
+        "chapter_count",
+        "updated_at"
+      ],
+      "title": "BookSummary",
+      "type": "object"
+    },
+    "BranchFork": {
+      "additionalProperties": false,
+      "properties": {
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "name": {
+          "default": "新的可能",
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        }
+      },
+      "required": [
+        "branch_id",
+        "expected_snapshot"
+      ],
+      "title": "BranchFork",
+      "type": "object"
+    },
+    "BranchInfo": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parent Id"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "parent_id"
+      ],
+      "title": "BranchInfo",
+      "type": "object"
+    },
+    "BranchTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "branch_id"
+      ],
+      "title": "BranchTarget",
+      "type": "object"
+    },
+    "Budget": {
+      "additionalProperties": false,
+      "properties": {
+        "max_requests": {
+          "default": 24,
+          "maximum": 40,
+          "minimum": 1,
+          "title": "Max Requests",
+          "type": "integer"
+        },
+        "max_tokens": {
+          "default": 65536,
+          "maximum": 500000,
+          "minimum": 512,
+          "title": "Max Tokens",
+          "type": "integer"
+        },
+        "max_characters": {
+          "default": 10000,
+          "maximum": 50000,
+          "minimum": 0,
+          "title": "Max Characters",
+          "type": "integer"
+        },
+        "max_cost": {
+          "anyOf": [
+            {
+              "exclusiveMinimum": 0,
+              "maximum": 10000,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Max Cost"
+        },
+        "currency": {
+          "default": "CNY",
+          "maxLength": 8,
+          "minLength": 1,
+          "title": "Currency",
+          "type": "string"
+        },
+        "input_per_million": {
+          "anyOf": [
+            {
+              "maximum": 100000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Input Per Million"
+        },
+        "output_per_million": {
+          "anyOf": [
+            {
+              "maximum": 100000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Per Million"
+        },
+        "speech_per_million": {
+          "anyOf": [
+            {
+              "maximum": 100000,
+              "minimum": 0,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Speech Per Million"
+        },
+        "price_source": {
+          "default": "",
+          "maxLength": 500,
+          "title": "Price Source",
+          "type": "string"
+        },
+        "price_date": {
+          "default": "",
+          "maxLength": 40,
+          "title": "Price Date",
+          "type": "string"
+        }
+      },
+      "title": "Budget",
+      "type": "object"
+    },
+    "ChapterCreate": {
+      "additionalProperties": false,
+      "properties": {
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "title": {
+          "default": "新章节",
+          "maxLength": 120,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "branch_id",
+        "expected_snapshot"
+      ],
+      "title": "ChapterCreate",
+      "type": "object"
+    },
+    "ChapterMeta": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "revising",
+            "done"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "string"
+        },
+        "anchor": {
+          "title": "Anchor",
+          "type": "string"
+        },
+        "word_count": {
+          "title": "Word Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "status",
+        "revision",
+        "anchor",
+        "word_count"
+      ],
+      "title": "ChapterMeta",
+      "type": "object"
+    },
+    "ChapterRemove": {
+      "additionalProperties": false,
+      "properties": {
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "chapter_id": {
+          "title": "Chapter Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "branch_id",
+        "expected_snapshot",
+        "chapter_id"
+      ],
+      "title": "ChapterRemove",
+      "type": "object"
+    },
+    "ChapterReorder": {
+      "additionalProperties": false,
+      "properties": {
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "ordered_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Ordered Ids",
+          "type": "array"
+        }
+      },
+      "required": [
+        "branch_id",
+        "expected_snapshot",
+        "ordered_ids"
+      ],
+      "title": "ChapterReorder",
+      "type": "object"
+    },
+    "ChapterSave": {
+      "additionalProperties": false,
+      "properties": {
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "chapter_id": {
+          "title": "Chapter Id",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 1000000,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "branch_id",
+        "expected_snapshot",
+        "chapter_id",
+        "text"
+      ],
+      "title": "ChapterSave",
+      "type": "object"
+    },
+    "ChapterTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "chapter_id": {
+          "title": "Chapter Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "branch_id",
+        "chapter_id"
+      ],
+      "title": "ChapterTarget",
+      "type": "object"
+    },
+    "ChapterText": {
+      "additionalProperties": false,
+      "properties": {
+        "chapter_id": {
+          "title": "Chapter Id",
+          "type": "string"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "anchor": {
+          "title": "Anchor",
+          "type": "string"
+        }
+      },
+      "required": [
+        "chapter_id",
+        "revision",
+        "text",
+        "anchor"
+      ],
+      "title": "ChapterText",
+      "type": "object"
+    },
+    "ChapterUpdate": {
+      "additionalProperties": false,
+      "properties": {
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "chapter_id": {
+          "title": "Chapter Id",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "status": {
+          "default": "draft",
+          "enum": [
+            "draft",
+            "revising",
+            "done"
+          ],
+          "title": "Status",
+          "type": "string"
+        }
+      },
+      "required": [
+        "branch_id",
+        "expected_snapshot",
+        "chapter_id",
+        "title"
+      ],
+      "title": "ChapterUpdate",
+      "type": "object"
+    },
+    "Character": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "string"
+        },
+        "kind": {
+          "default": "character",
+          "enum": [
+            "character",
+            "user"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "archived": {
+          "default": false,
+          "title": "Archived",
+          "type": "boolean"
+        },
+        "persona": {
+          "$ref": "#/$defs/Persona"
+        },
+        "source": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source"
+        }
+      },
+      "required": [
+        "id",
+        "revision",
+        "persona"
+      ],
+      "title": "Character",
+      "type": "object"
+    },
+    "CharacterSave": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Id"
+        },
+        "expected_revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Expected Revision"
+        },
+        "kind": {
+          "default": "character",
+          "enum": [
+            "character",
+            "user"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "archived": {
+          "default": false,
+          "title": "Archived",
+          "type": "boolean"
+        },
+        "persona": {
+          "$ref": "#/$defs/Persona"
+        }
+      },
+      "required": [
+        "persona"
+      ],
+      "title": "CharacterSave",
+      "type": "object"
+    },
+    "CharacterTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Revision"
+        }
+      },
+      "required": [
+        "id"
+      ],
+      "title": "CharacterTarget",
+      "type": "object"
+    },
+    "Charge": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "selection",
+            "reply",
+            "speech"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "input_tokens": {
+          "default": 0,
+          "title": "Input Tokens",
+          "type": "integer"
+        },
+        "output_tokens": {
+          "default": 0,
+          "title": "Output Tokens",
+          "type": "integer"
+        },
+        "characters": {
+          "default": 0,
+          "title": "Characters",
+          "type": "integer"
+        },
+        "reserved_cost": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Reserved Cost"
+        },
+        "status": {
+          "default": "reserved",
+          "enum": [
+            "reserved",
+            "settled",
+            "unknown"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "actual_model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actual Model"
+        }
+      },
+      "required": [
+        "id",
+        "kind"
+      ],
+      "title": "Charge",
+      "type": "object"
+    },
+    "ChatConfigure": {
+      "additionalProperties": false,
+      "properties": {
+        "conversation_id": {
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "user_persona_revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "User Persona Revision"
+        },
+        "title": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "members": {
+          "items": {
+            "$ref": "#/$defs/Member"
+          },
+          "maxItems": 500,
+          "minItems": 1,
+          "title": "Members",
+          "type": "array"
+        },
+        "add_character_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Add Character Ids",
+          "type": "array"
+        },
+        "user_character_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "User Character Id"
+        },
+        "scene": {
+          "default": "",
+          "maxLength": 8000,
+          "title": "Scene",
+          "type": "string"
+        }
+      },
+      "required": [
+        "conversation_id",
+        "expected_snapshot",
+        "idempotency_key",
+        "title",
+        "members"
+      ],
+      "title": "ChatConfigure",
+      "type": "object"
+    },
+    "ChatContext": {
+      "additionalProperties": false,
+      "properties": {
+        "conversation_id": {
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "member_id": {
+          "title": "Member Id",
+          "type": "string"
+        },
+        "context_policy": {
+          "const": "chat_scoped",
+          "default": "chat_scoped",
+          "title": "Context Policy",
+          "type": "string"
+        },
+        "messages": {
+          "items": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "type": "object"
+          },
+          "title": "Messages",
+          "type": "array"
+        },
+        "source_revisions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Revisions",
+          "type": "array"
+        },
+        "memory_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Memory Ids",
+          "type": "array"
+        },
+        "trimmed_revisions": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Trimmed Revisions",
+          "type": "array"
+        },
+        "estimated_tokens": {
+          "title": "Estimated Tokens",
+          "type": "integer"
+        },
+        "output_reserve": {
+          "title": "Output Reserve",
+          "type": "integer"
+        },
+        "warning": {
+          "default": "token 数为保守估算；私有人设只向本角色注入，模型仍可能在公开回复中说出。",
+          "title": "Warning",
+          "type": "string"
+        }
+      },
+      "required": [
+        "conversation_id",
+        "snapshot_id",
+        "member_id",
+        "messages",
+        "source_revisions",
+        "memory_ids",
+        "trimmed_revisions",
+        "estimated_tokens",
+        "output_reserve"
+      ],
+      "title": "ChatContext",
+      "type": "object"
+    },
+    "ChatContextRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "conversation_id": {
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot Id"
+        },
+        "member_id": {
+          "title": "Member Id",
+          "type": "string"
+        },
+        "config_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Config Id"
+        }
+      },
+      "required": [
+        "conversation_id",
+        "member_id"
+      ],
+      "title": "ChatContextRequest",
+      "type": "object"
+    },
+    "ChatCreate": {
+      "additionalProperties": false,
+      "properties": {
+        "title": {
+          "default": "新的会话",
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "character_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "minItems": 1,
+          "title": "Character Ids",
+          "type": "array"
+        },
+        "user_character_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "User Character Id"
+        },
+        "scene": {
+          "default": "",
+          "maxLength": 8000,
+          "title": "Scene",
+          "type": "string"
+        }
+      },
+      "required": [
+        "character_ids"
+      ],
+      "title": "ChatCreate",
+      "type": "object"
+    },
+    "ChatHistory": {
+      "additionalProperties": false,
+      "properties": {
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "parent_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Parent Id"
+        },
+        "message_count": {
+          "title": "Message Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "parent_id",
+        "message_count"
+      ],
+      "title": "ChatHistory",
+      "type": "object"
+    },
+    "ChatPlayback": {
+      "additionalProperties": false,
+      "properties": {
+        "conversation_id": {
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "include_actions": {
+          "default": false,
+          "title": "Include Actions",
+          "type": "boolean"
+        },
+        "source_segment_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Source Segment Id"
+        },
+        "message_revision": {
+          "title": "Message Revision",
+          "type": "string"
+        },
+        "tts_config_id": {
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Tts Config Id",
+          "type": "string"
+        },
+        "voice": {
+          "$ref": "#/$defs/Voice"
+        },
+        "budget": {
+          "$ref": "#/$defs/Budget"
+        }
+      },
+      "required": [
+        "conversation_id",
+        "expected_snapshot",
+        "idempotency_key",
+        "message_revision",
+        "tts_config_id"
+      ],
+      "title": "ChatPlayback",
+      "type": "object"
+    },
+    "ChatSend": {
+      "additionalProperties": false,
+      "properties": {
+        "conversation_id": {
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "include_actions": {
+          "default": false,
+          "title": "Include Actions",
+          "type": "boolean"
+        },
+        "text": {
+          "default": "",
+          "maxLength": 20000,
+          "title": "Text",
+          "type": "string"
+        },
+        "config_id": {
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Config Id",
+          "type": "string"
+        },
+        "mode": {
+          "default": "mention",
+          "enum": [
+            "mention",
+            "round_robin",
+            "all",
+            "situation"
+          ],
+          "title": "Mode",
+          "type": "string"
+        },
+        "member_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Member Ids",
+          "type": "array"
+        },
+        "continue_turn": {
+          "default": false,
+          "title": "Continue Turn",
+          "type": "boolean"
+        },
+        "retry_revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry Revision"
+        },
+        "budget": {
+          "$ref": "#/$defs/Budget"
+        },
+        "auto_speech": {
+          "default": false,
+          "title": "Auto Speech",
+          "type": "boolean"
+        },
+        "speech_scope": {
+          "default": "all",
+          "enum": [
+            "all",
+            "first"
+          ],
+          "title": "Speech Scope",
+          "type": "string"
+        },
+        "tts_config_id": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Tts Config Id"
+        }
+      },
+      "required": [
+        "conversation_id",
+        "expected_snapshot",
+        "idempotency_key",
+        "config_id"
+      ],
+      "title": "ChatSend",
+      "type": "object"
+    },
+    "ChatSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "member_count": {
+          "title": "Member Count",
+          "type": "integer"
+        },
+        "active": {
+          "default": false,
+          "title": "Active",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "snapshot_id",
+        "member_count"
+      ],
+      "title": "ChatSummary",
+      "type": "object"
+    },
+    "ChatTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "conversation_id": {
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Snapshot Id"
+        }
+      },
+      "required": [
+        "conversation_id"
+      ],
+      "title": "ChatTarget",
+      "type": "object"
+    },
+    "ChatView": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "members": {
+          "items": {
+            "$ref": "#/$defs/Member"
+          },
+          "title": "Members",
+          "type": "array"
+        },
+        "user_character_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "User Character Id"
+        },
+        "user_persona_revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "User Persona Revision"
+        },
+        "scene": {
+          "title": "Scene",
+          "type": "string"
+        },
+        "messages": {
+          "items": {
+            "$ref": "#/$defs/Message"
+          },
+          "title": "Messages",
+          "type": "array"
+        },
+        "variants": {
+          "items": {
+            "$ref": "#/$defs/Message"
+          },
+          "title": "Variants",
+          "type": "array"
+        },
+        "memories": {
+          "items": {
+            "$ref": "#/$defs/Memory"
+          },
+          "title": "Memories",
+          "type": "array"
+        },
+        "history": {
+          "items": {
+            "$ref": "#/$defs/ChatHistory"
+          },
+          "title": "Conversation snapshot history",
+          "type": "array"
+        },
+        "turns": {
+          "items": {
+            "$ref": "#/$defs/Turn"
+          },
+          "title": "Turns",
+          "type": "array"
+        },
+        "playback_epoch": {
+          "title": "Playback Epoch",
+          "type": "integer"
+        },
+        "snapshot_sequence": {
+          "title": "Snapshot Sequence",
+          "type": "integer"
+        },
+        "event_sequence": {
+          "title": "Event Sequence",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "id",
+        "title",
+        "snapshot_id",
+        "members",
+        "scene",
+        "messages",
+        "variants",
+        "memories",
+        "history",
+        "turns",
+        "playback_epoch",
+        "snapshot_sequence",
+        "event_sequence"
+      ],
+      "title": "ChatView",
+      "type": "object"
+    },
+    "ConfirmImport": {
+      "additionalProperties": false,
+      "properties": {
+        "import_id": {
+          "title": "Import Id",
+          "type": "string"
+        },
+        "accept_incomplete": {
+          "default": false,
+          "title": "Accept Incomplete",
+          "type": "boolean"
+        },
+        "title": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        }
+      },
+      "required": [
+        "import_id",
+        "title"
+      ],
+      "title": "ConfirmImport",
+      "type": "object"
+    },
+    "ContextPreview": {
+      "additionalProperties": false,
+      "properties": {
+        "context_policy": {
+          "title": "Context Policy",
+          "type": "string"
+        },
+        "preceding_text": {
+          "title": "Preceding Text",
+          "type": "string"
+        },
+        "planning": {
+          "items": {
+            "$ref": "#/$defs/PlanningEntry"
+          },
+          "title": "Planning",
+          "type": "array"
+        },
+        "missing_chapter_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Missing Chapter Ids",
+          "type": "array"
+        },
+        "estimated_tokens": {
+          "title": "Estimated Tokens",
+          "type": "integer"
+        },
+        "token_estimation": {
+          "const": "estimated",
+          "default": "estimated",
+          "title": "Token Estimation",
+          "type": "string"
+        },
+        "warning": {
+          "title": "Warning",
+          "type": "string"
+        }
+      },
+      "required": [
+        "context_policy",
+        "preceding_text",
+        "planning",
+        "missing_chapter_ids",
+        "estimated_tokens",
+        "warning"
+      ],
+      "title": "ContextPreview",
+      "type": "object"
+    },
+    "ContextRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "chapter_id": {
+          "title": "Chapter Id",
+          "type": "string"
+        },
+        "offset": {
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "context_policy": {
+          "enum": [
+            "reader_safe",
+            "author_plan",
+            "full_rewrite"
+          ],
+          "title": "Context Policy",
+          "type": "string"
+        },
+        "selected_planning_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Selected Planning Ids",
+          "type": "array"
+        },
+        "rewrite_chapter_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Rewrite Chapter Ids",
+          "type": "array"
+        },
+        "config_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Config Id"
+        }
+      },
+      "required": [
+        "branch_id",
+        "chapter_id",
+        "offset",
+        "context_policy"
+      ],
+      "title": "ContextRequest",
+      "type": "object"
+    },
+    "CopyPreview": {
+      "additionalProperties": false,
+      "properties": {
+        "persona": {
+          "$ref": "#/$defs/Persona"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "warning": {
+          "title": "Warning",
+          "type": "string"
+        },
+        "character": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Character"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        }
+      },
+      "required": [
+        "persona",
+        "source",
+        "warning"
+      ],
+      "title": "CopyPreview",
+      "type": "object"
+    },
+    "Empty": {
+      "additionalProperties": false,
+      "properties": {},
+      "title": "Empty",
+      "type": "object"
+    },
+    "Export": {
+      "additionalProperties": false,
+      "properties": {
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "format": {
+          "default": "txt",
+          "enum": [
+            "txt",
+            "md"
+          ],
+          "title": "Format",
+          "type": "string"
+        }
+      },
+      "required": [
+        "branch_id"
+      ],
+      "title": "Export",
+      "type": "object"
+    },
+    "ExportResult": {
+      "additionalProperties": false,
+      "properties": {
+        "filename": {
+          "title": "Filename",
+          "type": "string"
+        },
+        "content": {
+          "title": "Content",
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename",
+        "content"
+      ],
+      "title": "ExportResult",
+      "type": "object"
+    },
+    "FileOperation": {
+      "additionalProperties": false,
+      "properties": {
+        "operation_id": {
+          "title": "Operation Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "import",
+            "backup",
+            "restore"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "running",
+            "completed",
+            "failed",
+            "cancelled"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "stage": {
+          "title": "Stage",
+          "type": "string"
+        },
+        "preview": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ImportPreview"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "book_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Book Count"
+        },
+        "include_audio": {
+          "default": false,
+          "title": "Include Audio",
+          "type": "boolean"
+        },
+        "size": {
+          "default": 0,
+          "title": "Size",
+          "type": "integer"
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Code"
+        },
+        "message": {
+          "default": "",
+          "title": "Message",
+          "type": "string"
+        },
+        "activated": {
+          "default": false,
+          "title": "Activated",
+          "type": "boolean"
+        },
+        "previous_library_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Previous Library Id"
+        }
+      },
+      "required": [
+        "operation_id",
+        "kind",
+        "status",
+        "stage"
+      ],
+      "title": "FileOperation",
+      "type": "object"
+    },
+    "Generate": {
+      "additionalProperties": false,
+      "properties": {
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "chapter_id": {
+          "title": "Chapter Id",
+          "type": "string"
+        },
+        "offset": {
+          "minimum": 0,
+          "title": "Offset",
+          "type": "integer"
+        },
+        "context_policy": {
+          "enum": [
+            "reader_safe",
+            "author_plan",
+            "full_rewrite"
+          ],
+          "title": "Context Policy",
+          "type": "string"
+        },
+        "selected_planning_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Selected Planning Ids",
+          "type": "array"
+        },
+        "rewrite_chapter_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Rewrite Chapter Ids",
+          "type": "array"
+        },
+        "config_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Config Id"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "intent": {
+          "maxLength": 2000,
+          "title": "Intent",
+          "type": "string"
+        },
+        "provider": {
+          "enum": [
+            "demo",
+            "configured"
+          ],
+          "title": "Provider",
+          "type": "string"
+        }
+      },
+      "required": [
+        "branch_id",
+        "chapter_id",
+        "offset",
+        "context_policy",
+        "expected_snapshot",
+        "intent",
+        "provider"
+      ],
+      "title": "Generate",
+      "type": "object"
+    },
+    "Generation": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "artifact_kind": {
+          "const": "prose",
+          "default": "prose",
+          "title": "Artifact Kind",
+          "type": "string"
+        },
+        "candidate_revision": {
+          "title": "Candidate Revision",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "accepted": {
+          "default": false,
+          "title": "Accepted",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "candidate_revision",
+        "text"
+      ],
+      "title": "Generation",
+      "type": "object"
+    },
+    "Health": {
+      "additionalProperties": false,
+      "properties": {
+        "schema_version": {
+          "const": 1,
+          "default": 1,
+          "title": "Schema Version",
+          "type": "integer"
+        },
+        "engine_version": {
+          "default": "0.1.0",
+          "title": "Engine Version",
+          "type": "string"
+        },
+        "provider": {
+          "default": "unconfigured",
+          "enum": [
+            "unconfigured",
+            "configured"
+          ],
+          "title": "Provider",
+          "type": "string"
+        },
+        "external_enabled": {
+          "default": false,
+          "title": "External Enabled",
+          "type": "boolean"
+        }
+      },
+      "title": "Health",
+      "type": "object"
+    },
+    "History": {
+      "additionalProperties": false,
+      "properties": {
+        "entries": {
+          "items": {
+            "$ref": "#/$defs/HistoryEntry"
+          },
+          "title": "Entries",
+          "type": "array"
+        }
+      },
+      "required": [
+        "entries"
+      ],
+      "title": "History",
+      "type": "object"
+    },
+    "HistoryChange": {
+      "additionalProperties": false,
+      "properties": {
+        "conversation_id": {
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "kind": {
+          "anyOf": [
+            {
+              "enum": [
+                "dialogue",
+                "action"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Kind"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "string"
+        },
+        "action": {
+          "enum": [
+            "edit",
+            "select",
+            "use_interrupted",
+            "restore"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "text": {
+          "default": "",
+          "maxLength": 20000,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "conversation_id",
+        "expected_snapshot",
+        "idempotency_key",
+        "revision",
+        "action"
+      ],
+      "title": "HistoryChange",
+      "type": "object"
+    },
+    "HistoryEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "word_count": {
+          "title": "Word Count",
+          "type": "integer"
+        },
+        "chapter_count": {
+          "title": "Chapter Count",
+          "type": "integer"
+        },
+        "planning_count": {
+          "title": "Planning Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "snapshot_id",
+        "word_count",
+        "chapter_count",
+        "planning_count"
+      ],
+      "title": "HistoryEntry",
+      "type": "object"
+    },
+    "ImportPreview": {
+      "additionalProperties": false,
+      "properties": {
+        "import_id": {
+          "title": "Import Id",
+          "type": "string"
+        },
+        "filename": {
+          "title": "Filename",
+          "type": "string"
+        },
+        "encoding": {
+          "title": "Encoding",
+          "type": "string"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        },
+        "chapters": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Chapters",
+          "type": "array"
+        },
+        "sample": {
+          "title": "Sample",
+          "type": "string"
+        },
+        "omitted_pages": {
+          "items": {
+            "type": "integer"
+          },
+          "title": "Omitted Pages",
+          "type": "array"
+        },
+        "metadata": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Metadata",
+          "type": "object"
+        }
+      },
+      "required": [
+        "import_id",
+        "filename",
+        "encoding",
+        "warnings",
+        "chapters",
+        "sample"
+      ],
+      "title": "ImportPreview",
+      "type": "object"
+    },
+    "Library": {
+      "additionalProperties": false,
+      "properties": {
+        "books": {
+          "items": {
+            "$ref": "#/$defs/BookSummary"
+          },
+          "title": "Books",
+          "type": "array"
+        }
+      },
+      "required": [
+        "books"
+      ],
+      "title": "Library",
+      "type": "object"
+    },
+    "LocalMessage": {
+      "additionalProperties": false,
+      "properties": {
+        "conversation_id": {
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 20000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "conversation_id",
+        "expected_snapshot",
+        "idempotency_key",
+        "text"
+      ],
+      "title": "LocalMessage",
+      "type": "object"
+    },
+    "Member": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "character_id": {
+          "title": "Character Id",
+          "type": "string"
+        },
+        "persona_revision": {
+          "title": "Persona Revision",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "joined_seq": {
+          "default": 0,
+          "title": "Joined Seq",
+          "type": "integer"
+        },
+        "muted": {
+          "default": false,
+          "title": "Muted",
+          "type": "boolean"
+        },
+        "removed": {
+          "default": false,
+          "title": "Removed",
+          "type": "boolean"
+        },
+        "voice": {
+          "$ref": "#/$defs/Voice"
+        }
+      },
+      "required": [
+        "id",
+        "character_id",
+        "persona_revision",
+        "name"
+      ],
+      "title": "Member",
+      "type": "object"
+    },
+    "Memory": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 4000,
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        },
+        "source_revisions": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 100,
+          "minItems": 1,
+          "title": "Source Revisions",
+          "type": "array"
+        },
+        "recipient_ids": {
+          "items": {
+            "type": "string"
+          },
+          "maxItems": 8,
+          "title": "Recipient Ids",
+          "type": "array"
+        },
+        "kind": {
+          "default": "fact",
+          "enum": [
+            "fact",
+            "inference"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "locked": {
+          "default": true,
+          "title": "Locked",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "text",
+        "source_revisions"
+      ],
+      "title": "Memory",
+      "type": "object"
+    },
+    "MemorySave": {
+      "additionalProperties": false,
+      "properties": {
+        "conversation_id": {
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "idempotency_key": {
+          "maxLength": 100,
+          "minLength": 1,
+          "title": "Idempotency Key",
+          "type": "string"
+        },
+        "memory": {
+          "$ref": "#/$defs/Memory"
+        },
+        "remove": {
+          "default": false,
+          "title": "Remove",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "conversation_id",
+        "expected_snapshot",
+        "idempotency_key",
+        "memory"
+      ],
+      "title": "MemorySave",
+      "type": "object"
+    },
+    "Message": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "string"
+        },
+        "conversation_id": {
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "member_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Member Id"
+        },
+        "speaker": {
+          "title": "Speaker",
+          "type": "string"
+        },
+        "role": {
+          "enum": [
+            "user",
+            "assistant",
+            "preset"
+          ],
+          "title": "Role",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "complete",
+            "interrupted",
+            "streaming",
+            "preset"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "sequence": {
+          "title": "Sequence",
+          "type": "integer"
+        },
+        "turn_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Turn Id"
+        },
+        "input_snapshot": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Input Snapshot"
+        },
+        "visible_to": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Visible To",
+          "type": "array"
+        },
+        "kind": {
+          "default": "dialogue",
+          "enum": [
+            "dialogue",
+            "action"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "revision",
+        "conversation_id",
+        "speaker",
+        "role",
+        "text",
+        "status",
+        "sequence"
+      ],
+      "title": "Message",
+      "type": "object"
+    },
+    "NarrationRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "config_id": {
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Config Id",
+          "type": "string"
+        },
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "chapter_id": {
+          "title": "Chapter Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "max_characters": {
+          "default": 10000,
+          "maximum": 10000,
+          "minimum": 1,
+          "title": "Max Characters",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "config_id",
+        "branch_id",
+        "chapter_id",
+        "expected_snapshot"
+      ],
+      "title": "NarrationRequest",
+      "type": "object"
+    },
+    "NetworkSet": {
+      "additionalProperties": false,
+      "properties": {
+        "enabled": {
+          "title": "Enabled",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "enabled"
+      ],
+      "title": "NetworkSet",
+      "type": "object"
+    },
+    "OperationTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "operation_id": {
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Operation Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "operation_id"
+      ],
+      "title": "OperationTarget",
+      "type": "object"
+    },
+    "Persona": {
+      "additionalProperties": false,
+      "properties": {
+        "avatar": {
+          "default": "",
+          "maxLength": 180000,
+          "title": "Avatar",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "introduction": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Introduction",
+          "type": "string"
+        },
+        "identity": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Identity",
+          "type": "string"
+        },
+        "appearance": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Appearance",
+          "type": "string"
+        },
+        "background": {
+          "default": "",
+          "maxLength": 8000,
+          "title": "Background",
+          "type": "string"
+        },
+        "personality": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Personality",
+          "type": "string"
+        },
+        "motivation": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Motivation",
+          "type": "string"
+        },
+        "relationships": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Relationships",
+          "type": "string"
+        },
+        "style": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Style",
+          "type": "string"
+        },
+        "opening": {
+          "default": "",
+          "maxLength": 4000,
+          "title": "Opening",
+          "type": "string"
+        },
+        "examples": {
+          "default": "",
+          "maxLength": 8000,
+          "title": "Examples",
+          "type": "string"
+        },
+        "private_knowledge": {
+          "default": "",
+          "maxLength": 8000,
+          "title": "Private Knowledge",
+          "type": "string"
+        },
+        "voice_preference": {
+          "default": "",
+          "maxLength": 2000,
+          "title": "Voice Preference",
+          "type": "string"
+        },
+        "freeform": {
+          "default": false,
+          "title": "Freeform",
+          "type": "boolean"
+        },
+        "voice": {
+          "$ref": "#/$defs/Voice"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Persona",
+      "type": "object"
+    },
+    "PlanningEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "brief",
+            "character",
+            "lore",
+            "outline"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "title": {
+          "maxLength": 120,
+          "minLength": 1,
+          "title": "Title",
+          "type": "string"
+        },
+        "text": {
+          "maxLength": 20000,
+          "title": "Text",
+          "type": "string"
+        },
+        "context_role": {
+          "default": "setting",
+          "enum": [
+            "setting",
+            "planned_event"
+          ],
+          "title": "Context Role",
+          "type": "string"
+        },
+        "author_only": {
+          "default": false,
+          "title": "Author Only",
+          "type": "boolean"
+        },
+        "visible_from": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Visible From"
+        },
+        "locked": {
+          "default": true,
+          "title": "Locked",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "kind",
+        "title",
+        "text"
+      ],
+      "title": "PlanningEntry",
+      "type": "object"
+    },
+    "PlanningSave": {
+      "additionalProperties": false,
+      "properties": {
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "entries": {
+          "items": {
+            "$ref": "#/$defs/PlanningEntry"
+          },
+          "maxItems": 500,
+          "title": "Entries",
+          "type": "array"
+        }
+      },
+      "required": [
+        "branch_id",
+        "expected_snapshot",
+        "entries"
+      ],
+      "title": "PlanningSave",
+      "type": "object"
+    },
+    "PreviewImport": {
+      "additionalProperties": false,
+      "properties": {
+        "filename": {
+          "maxLength": 255,
+          "title": "Filename",
+          "type": "string"
+        },
+        "content_b64": {
+          "default": "",
+          "maxLength": 14000000,
+          "title": "Content B64",
+          "type": "string"
+        },
+        "asset_id": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asset Id"
+        },
+        "password": {
+          "default": "",
+          "maxLength": 256,
+          "title": "Password",
+          "type": "string"
+        },
+        "remove_pdf_margins": {
+          "default": false,
+          "title": "Remove Pdf Margins",
+          "type": "boolean"
+        },
+        "encoding": {
+          "default": "auto",
+          "enum": [
+            "auto",
+            "utf-8",
+            "utf-16",
+            "gb18030"
+          ],
+          "title": "Encoding",
+          "type": "string"
+        }
+      },
+      "required": [
+        "filename"
+      ],
+      "title": "PreviewImport",
+      "type": "object"
+    },
+    "ProviderCatalog": {
+      "additionalProperties": false,
+      "properties": {
+        "templates": {
+          "items": {
+            "$ref": "#/$defs/ProviderTemplate"
+          },
+          "title": "Templates",
+          "type": "array"
+        },
+        "checked_on": {
+          "default": "2026-10-16",
+          "title": "Checked On",
+          "type": "string"
+        }
+      },
+      "required": [
+        "templates"
+      ],
+      "title": "ProviderCatalog",
+      "type": "object"
+    },
+    "ProviderConfig": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "llm",
+            "tts"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "protocol": {
+          "enum": [
+            "openai_chat",
+            "openai_responses",
+            "anthropic",
+            "openai_speech",
+            "minimax_speech",
+            "elevenlabs"
+          ],
+          "title": "Protocol",
+          "type": "string"
+        },
+        "base_url": {
+          "maxLength": 500,
+          "minLength": 8,
+          "title": "Base Url",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "region": {
+          "default": "custom",
+          "maxLength": 80,
+          "title": "Region",
+          "type": "string"
+        },
+        "voice": {
+          "default": "",
+          "maxLength": 160,
+          "pattern": "^[\\w.\\-]*$",
+          "title": "Voice",
+          "type": "string"
+        },
+        "context_limit": {
+          "default": 16384,
+          "maximum": 2000000,
+          "minimum": 2048,
+          "title": "Context Limit",
+          "type": "integer"
+        },
+        "max_output_tokens": {
+          "default": 2048,
+          "maximum": 32768,
+          "minimum": 16,
+          "title": "Max Output Tokens",
+          "type": "integer"
+        },
+        "token_parameter": {
+          "default": "max_tokens",
+          "enum": [
+            "max_tokens",
+            "max_completion_tokens"
+          ],
+          "title": "Token Parameter",
+          "type": "string"
+        },
+        "include_usage": {
+          "default": false,
+          "title": "Include Usage",
+          "type": "boolean"
+        },
+        "send_temperature": {
+          "default": false,
+          "title": "Send Temperature",
+          "type": "boolean"
+        },
+        "temperature": {
+          "default": 0.8,
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Temperature",
+          "type": "number"
+        },
+        "speech_expression": {
+          "default": false,
+          "title": "Speech Expression",
+          "type": "boolean"
+        },
+        "allow_local": {
+          "default": false,
+          "title": "Allow Local",
+          "type": "boolean"
+        },
+        "requires_key": {
+          "default": true,
+          "title": "Requires Key",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "protocol",
+        "base_url",
+        "model"
+      ],
+      "title": "ProviderConfig",
+      "type": "object"
+    },
+    "ProviderList": {
+      "additionalProperties": false,
+      "properties": {
+        "providers": {
+          "items": {
+            "$ref": "#/$defs/ProviderRecord"
+          },
+          "title": "Providers",
+          "type": "array"
+        },
+        "external_enabled": {
+          "title": "External Enabled",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "providers",
+        "external_enabled"
+      ],
+      "title": "ProviderList",
+      "type": "object"
+    },
+    "ProviderRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "maxLength": 80,
+          "minLength": 1,
+          "title": "Name",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "llm",
+            "tts"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "protocol": {
+          "enum": [
+            "openai_chat",
+            "openai_responses",
+            "anthropic",
+            "openai_speech",
+            "minimax_speech",
+            "elevenlabs"
+          ],
+          "title": "Protocol",
+          "type": "string"
+        },
+        "base_url": {
+          "maxLength": 500,
+          "minLength": 8,
+          "title": "Base Url",
+          "type": "string"
+        },
+        "model": {
+          "maxLength": 160,
+          "minLength": 1,
+          "title": "Model",
+          "type": "string"
+        },
+        "region": {
+          "default": "custom",
+          "maxLength": 80,
+          "title": "Region",
+          "type": "string"
+        },
+        "voice": {
+          "default": "",
+          "maxLength": 160,
+          "pattern": "^[\\w.\\-]*$",
+          "title": "Voice",
+          "type": "string"
+        },
+        "context_limit": {
+          "default": 16384,
+          "maximum": 2000000,
+          "minimum": 2048,
+          "title": "Context Limit",
+          "type": "integer"
+        },
+        "max_output_tokens": {
+          "default": 2048,
+          "maximum": 32768,
+          "minimum": 16,
+          "title": "Max Output Tokens",
+          "type": "integer"
+        },
+        "token_parameter": {
+          "default": "max_tokens",
+          "enum": [
+            "max_tokens",
+            "max_completion_tokens"
+          ],
+          "title": "Token Parameter",
+          "type": "string"
+        },
+        "include_usage": {
+          "default": false,
+          "title": "Include Usage",
+          "type": "boolean"
+        },
+        "send_temperature": {
+          "default": false,
+          "title": "Send Temperature",
+          "type": "boolean"
+        },
+        "temperature": {
+          "default": 0.8,
+          "maximum": 2,
+          "minimum": 0,
+          "title": "Temperature",
+          "type": "number"
+        },
+        "speech_expression": {
+          "default": false,
+          "title": "Speech Expression",
+          "type": "boolean"
+        },
+        "allow_local": {
+          "default": false,
+          "title": "Allow Local",
+          "type": "boolean"
+        },
+        "requires_key": {
+          "default": true,
+          "title": "Requires Key",
+          "type": "boolean"
+        },
+        "has_credential": {
+          "default": false,
+          "title": "Has Credential",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "protocol",
+        "base_url",
+        "model"
+      ],
+      "title": "ProviderRecord",
+      "type": "object"
+    },
+    "ProviderSave": {
+      "additionalProperties": false,
+      "properties": {
+        "config": {
+          "$ref": "#/$defs/ProviderConfig"
+        }
+      },
+      "required": [
+        "config"
+      ],
+      "title": "ProviderSave",
+      "type": "object"
+    },
+    "ProviderTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "config_id": {
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Config Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "config_id"
+      ],
+      "title": "ProviderTarget",
+      "type": "object"
+    },
+    "ProviderTemplate": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "name": {
+          "title": "Name",
+          "type": "string"
+        },
+        "kind": {
+          "enum": [
+            "llm",
+            "tts"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "protocol": {
+          "enum": [
+            "openai_chat",
+            "openai_responses",
+            "anthropic",
+            "openai_speech",
+            "minimax_speech",
+            "elevenlabs"
+          ],
+          "title": "Protocol",
+          "type": "string"
+        },
+        "base_url": {
+          "title": "Base Url",
+          "type": "string"
+        },
+        "region": {
+          "default": "custom",
+          "title": "Region",
+          "type": "string"
+        },
+        "model": {
+          "default": "",
+          "title": "Model",
+          "type": "string"
+        },
+        "voice": {
+          "default": "",
+          "title": "Voice",
+          "type": "string"
+        },
+        "note": {
+          "default": "使用 API 平台的密钥和模型 ID；账号权限需自行测试。",
+          "title": "Note",
+          "type": "string"
+        },
+        "token_parameter": {
+          "default": "max_tokens",
+          "enum": [
+            "max_tokens",
+            "max_completion_tokens"
+          ],
+          "title": "Token Parameter",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "kind",
+        "protocol",
+        "base_url"
+      ],
+      "title": "ProviderTemplate",
+      "type": "object"
+    },
+    "RestorePreview": {
+      "additionalProperties": false,
+      "properties": {
+        "asset_id": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asset Id"
+        },
+        "content_b64": {
+          "default": "",
+          "maxLength": 14000000,
+          "title": "Content B64",
+          "type": "string"
+        }
+      },
+      "title": "RestorePreview",
+      "type": "object"
+    },
+    "RestoreSnapshot": {
+      "additionalProperties": false,
+      "properties": {
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "branch_id",
+        "expected_snapshot",
+        "snapshot_id"
+      ],
+      "title": "RestoreSnapshot",
+      "type": "object"
+    },
+    "RoleplayLibrary": {
+      "additionalProperties": false,
+      "properties": {
+        "characters": {
+          "items": {
+            "$ref": "#/$defs/Character"
+          },
+          "title": "Characters",
+          "type": "array"
+        },
+        "conversations": {
+          "items": {
+            "$ref": "#/$defs/ChatSummary"
+          },
+          "title": "Conversations",
+          "type": "array"
+        }
+      },
+      "required": [
+        "characters",
+        "conversations"
+      ],
+      "title": "RoleplayLibrary",
+      "type": "object"
+    },
+    "SpeechItem": {
+      "additionalProperties": false,
+      "properties": {
+        "segment": {
+          "$ref": "#/$defs/SpeechSegment"
+        },
+        "status": {
+          "default": "pending",
+          "enum": [
+            "pending",
+            "synthesizing",
+            "ready",
+            "played",
+            "failed",
+            "stopped"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "asset_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Asset Id"
+        },
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error"
+        },
+        "cache_hit": {
+          "default": false,
+          "title": "Cache Hit",
+          "type": "boolean"
+        },
+        "epoch": {
+          "title": "Epoch",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "segment",
+        "epoch"
+      ],
+      "title": "SpeechItem",
+      "type": "object"
+    },
+    "SpeechRequest": {
+      "additionalProperties": false,
+      "properties": {
+        "turn_id": {
+          "title": "Turn Id",
+          "type": "string"
+        },
+        "segment_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Segment Id"
+        },
+        "config_id": {
+          "pattern": "^[a-f0-9]{32}$",
+          "title": "Config Id",
+          "type": "string"
+        },
+        "playback_epoch": {
+          "title": "Playback Epoch",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "turn_id",
+        "config_id",
+        "playback_epoch"
+      ],
+      "title": "SpeechRequest",
+      "type": "object"
+    },
+    "SpeechSegment": {
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "revision": {
+          "title": "Revision",
+          "type": "string"
+        },
+        "conversation_id": {
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "turn_id": {
+          "title": "Turn Id",
+          "type": "string"
+        },
+        "message_id": {
+          "title": "Message Id",
+          "type": "string"
+        },
+        "variant_revision": {
+          "title": "Variant Revision",
+          "type": "string"
+        },
+        "start": {
+          "title": "Start",
+          "type": "integer"
+        },
+        "end": {
+          "title": "End",
+          "type": "integer"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "text_hash": {
+          "title": "Text Hash",
+          "type": "string"
+        },
+        "voice": {
+          "$ref": "#/$defs/Voice"
+        },
+        "requested_emotion": {
+          "title": "Requested Emotion",
+          "type": "string"
+        },
+        "provider_fingerprint": {
+          "default": "",
+          "title": "Provider Fingerprint",
+          "type": "string"
+        },
+        "effective_emotion": {
+          "default": "neutral",
+          "title": "Effective Emotion",
+          "type": "string"
+        },
+        "effective_speed": {
+          "default": 1,
+          "title": "Effective Speed",
+          "type": "number"
+        },
+        "warning": {
+          "default": "此配置未声明表达能力，使用普通语气；音色保持所选绑定。",
+          "title": "Warning",
+          "type": "string"
+        },
+        "kind": {
+          "default": "dialogue",
+          "enum": [
+            "dialogue",
+            "action"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "revision",
+        "conversation_id",
+        "turn_id",
+        "message_id",
+        "variant_revision",
+        "start",
+        "end",
+        "text",
+        "text_hash",
+        "voice",
+        "requested_emotion"
+      ],
+      "title": "SpeechSegment",
+      "type": "object"
+    },
+    "Task": {
+      "additionalProperties": false,
+      "properties": {
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "running",
+            "completed",
+            "cancelled",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "kind": {
+          "default": "writing",
+          "enum": [
+            "writing",
+            "test",
+            "narration",
+            "roleplay",
+            "chat_speech"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "message": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Message"
+        },
+        "usage": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Usage"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "audio": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AudioPlan"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "seq": {
+          "title": "Seq",
+          "type": "integer"
+        },
+        "generation": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Generation"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Code"
+        }
+      },
+      "required": [
+        "task_id",
+        "status",
+        "seq"
+      ],
+      "title": "Task",
+      "type": "object"
+    },
+    "TaskList": {
+      "additionalProperties": false,
+      "properties": {
+        "tasks": {
+          "items": {
+            "$ref": "#/$defs/TaskSummary"
+          },
+          "title": "Tasks",
+          "type": "array"
+        }
+      },
+      "required": [
+        "tasks"
+      ],
+      "title": "TaskList",
+      "type": "object"
+    },
+    "TaskSummary": {
+      "additionalProperties": false,
+      "properties": {
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "status": {
+          "title": "Status",
+          "type": "string"
+        },
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "chapter_id": {
+          "title": "Chapter Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "kind": {
+          "default": "writing",
+          "enum": [
+            "writing",
+            "test",
+            "narration",
+            "roleplay",
+            "chat_speech"
+          ],
+          "title": "Kind",
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id",
+        "status",
+        "branch_id",
+        "chapter_id",
+        "title"
+      ],
+      "title": "TaskSummary",
+      "type": "object"
+    },
+    "TaskTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "task_id"
+      ],
+      "title": "TaskTarget",
+      "type": "object"
+    },
+    "Turn": {
+      "properties": {
+        "contexts": {
+          "items": {
+            "$ref": "#/$defs/ChatContext"
+          },
+          "title": "Contexts",
+          "type": "array"
+        },
+        "id": {
+          "title": "Id",
+          "type": "string"
+        },
+        "task_id": {
+          "title": "Task Id",
+          "type": "string"
+        },
+        "conversation_id": {
+          "title": "Conversation Id",
+          "type": "string"
+        },
+        "base_snapshot": {
+          "title": "Base Snapshot",
+          "type": "string"
+        },
+        "expected_snapshot": {
+          "title": "Expected Snapshot",
+          "type": "string"
+        },
+        "status": {
+          "default": "running",
+          "enum": [
+            "running",
+            "completed",
+            "cancelled",
+            "failed"
+          ],
+          "title": "Status",
+          "type": "string"
+        },
+        "seq": {
+          "default": 0,
+          "title": "Seq",
+          "type": "integer"
+        },
+        "queue": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Queue",
+          "type": "array"
+        },
+        "completed_members": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Completed Members",
+          "type": "array"
+        },
+        "skipped_members": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Skipped Members",
+          "type": "array"
+        },
+        "messages": {
+          "items": {
+            "$ref": "#/$defs/Message"
+          },
+          "title": "Messages",
+          "type": "array"
+        },
+        "speech": {
+          "items": {
+            "$ref": "#/$defs/SpeechItem"
+          },
+          "title": "Speech",
+          "type": "array"
+        },
+        "charges": {
+          "items": {
+            "$ref": "#/$defs/Charge"
+          },
+          "title": "Charges",
+          "type": "array"
+        },
+        "budget": {
+          "$ref": "#/$defs/Budget"
+        },
+        "playback_epoch": {
+          "title": "Playback Epoch",
+          "type": "integer"
+        },
+        "speech_stopped": {
+          "default": false,
+          "title": "Speech Stopped",
+          "type": "boolean"
+        },
+        "text_finished": {
+          "default": false,
+          "title": "Text Finished",
+          "type": "boolean"
+        },
+        "auto_speech": {
+          "default": false,
+          "title": "Auto Speech",
+          "type": "boolean"
+        },
+        "retry_revision": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Retry Revision"
+        },
+        "error_code": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error Code"
+        },
+        "notice": {
+          "default": "费用未知；已提交的请求可能计费，未知结果不会自动重发。",
+          "title": "Notice",
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "task_id",
+        "conversation_id",
+        "base_snapshot",
+        "expected_snapshot",
+        "budget",
+        "playback_epoch"
+      ],
+      "title": "Turn",
+      "type": "object"
+    },
+    "TurnControl": {
+      "additionalProperties": false,
+      "properties": {
+        "turn_id": {
+          "title": "Turn Id",
+          "type": "string"
+        },
+        "action": {
+          "enum": [
+            "stop_speech",
+            "stop_turn",
+            "skip",
+            "played"
+          ],
+          "title": "Action",
+          "type": "string"
+        },
+        "member_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Member Id"
+        },
+        "segment_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Segment Id"
+        },
+        "playback_epoch": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Playback Epoch"
+        }
+      },
+      "required": [
+        "turn_id",
+        "action"
+      ],
+      "title": "TurnControl",
+      "type": "object"
+    },
+    "TurnTarget": {
+      "additionalProperties": false,
+      "properties": {
+        "turn_id": {
+          "title": "Turn Id",
+          "type": "string"
+        }
+      },
+      "required": [
+        "turn_id"
+      ],
+      "title": "TurnTarget",
+      "type": "object"
+    },
+    "Usage": {
+      "additionalProperties": false,
+      "properties": {
+        "input_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Input Tokens"
+        },
+        "output_tokens": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Output Tokens"
+        },
+        "input_characters": {
+          "default": 0,
+          "title": "Input Characters",
+          "type": "integer"
+        },
+        "requests_submitted": {
+          "default": 0,
+          "title": "Requests Submitted",
+          "type": "integer"
+        },
+        "cost_status": {
+          "default": "unknown",
+          "enum": [
+            "unknown",
+            "local_demo"
+          ],
+          "title": "Cost Status",
+          "type": "string"
+        },
+        "actual_model": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Actual Model"
+        }
+      },
+      "title": "Usage",
+      "type": "object"
+    },
+    "Voice": {
+      "additionalProperties": false,
+      "properties": {
+        "config_id": {
+          "anyOf": [
+            {
+              "pattern": "^[a-f0-9]{32}$",
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Config Id"
+        },
+        "voice": {
+          "default": "",
+          "maxLength": 160,
+          "pattern": "^[\\w.\\-]*$",
+          "title": "Voice",
+          "type": "string"
+        },
+        "emotion": {
+          "default": "auto",
+          "enum": [
+            "auto",
+            "neutral",
+            "happy",
+            "sad",
+            "angry",
+            "tense",
+            "surprised",
+            "gentle",
+            "whisper"
+          ],
+          "title": "Emotion",
+          "type": "string"
+        },
+        "locked": {
+          "default": true,
+          "title": "Locked",
+          "type": "boolean"
+        },
+        "speed": {
+          "anyOf": [
+            {
+              "maximum": 2,
+              "minimum": 0.5,
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Speed"
+        }
+      },
+      "title": "Voice",
+      "type": "object"
+    },
+    "Workspace": {
+      "additionalProperties": false,
+      "properties": {
+        "book_id": {
+          "title": "Book Id",
+          "type": "string"
+        },
+        "title": {
+          "title": "Title",
+          "type": "string"
+        },
+        "origin_type": {
+          "enum": [
+            "original",
+            "imported"
+          ],
+          "title": "Origin Type",
+          "type": "string"
+        },
+        "branch_id": {
+          "title": "Branch Id",
+          "type": "string"
+        },
+        "snapshot_id": {
+          "title": "Snapshot Id",
+          "type": "string"
+        },
+        "planning_revision": {
+          "title": "Planning Revision",
+          "type": "string"
+        },
+        "branches": {
+          "items": {
+            "$ref": "#/$defs/BranchInfo"
+          },
+          "title": "Branches",
+          "type": "array"
+        },
+        "chapters": {
+          "items": {
+            "$ref": "#/$defs/ChapterMeta"
+          },
+          "title": "Chapters",
+          "type": "array"
+        },
+        "planning": {
+          "items": {
+            "$ref": "#/$defs/PlanningEntry"
+          },
+          "title": "Planning",
+          "type": "array"
+        },
+        "word_count": {
+          "title": "Word Count",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "book_id",
+        "title",
+        "origin_type",
+        "branch_id",
+        "snapshot_id",
+        "planning_revision",
+        "branches",
+        "chapters",
+        "planning",
+        "word_count"
+      ],
+      "title": "Workspace",
+      "type": "object"
+    }
+  },
+  "properties": {
+    "Empty": {
+      "$ref": "#/$defs/Empty"
+    },
+    "Health": {
+      "$ref": "#/$defs/Health"
+    },
+    "RoleplayLibrary": {
+      "$ref": "#/$defs/RoleplayLibrary"
+    },
+    "CharacterTarget": {
+      "$ref": "#/$defs/CharacterTarget"
+    },
+    "Character": {
+      "$ref": "#/$defs/Character"
+    },
+    "LocalMessage": {
+      "$ref": "#/$defs/LocalMessage"
+    },
+    "ChatView": {
+      "$ref": "#/$defs/ChatView"
+    },
+    "CharacterSave": {
+      "$ref": "#/$defs/CharacterSave"
+    },
+    "ChatCreate": {
+      "$ref": "#/$defs/ChatCreate"
+    },
+    "ChatTarget": {
+      "$ref": "#/$defs/ChatTarget"
+    },
+    "ChatConfigure": {
+      "$ref": "#/$defs/ChatConfigure"
+    },
+    "ChatContextRequest": {
+      "$ref": "#/$defs/ChatContextRequest"
+    },
+    "ChatContext": {
+      "$ref": "#/$defs/ChatContext"
+    },
+    "MemorySave": {
+      "$ref": "#/$defs/MemorySave"
+    },
+    "HistoryChange": {
+      "$ref": "#/$defs/HistoryChange"
+    },
+    "ExportResult": {
+      "$ref": "#/$defs/ExportResult"
+    },
+    "BookCharacterCopy": {
+      "$ref": "#/$defs/BookCharacterCopy"
+    },
+    "CopyPreview": {
+      "$ref": "#/$defs/CopyPreview"
+    },
+    "ChatSend": {
+      "$ref": "#/$defs/ChatSend"
+    },
+    "Turn": {
+      "$ref": "#/$defs/Turn"
+    },
+    "TurnTarget": {
+      "$ref": "#/$defs/TurnTarget"
+    },
+    "TurnControl": {
+      "$ref": "#/$defs/TurnControl"
+    },
+    "ChatPlayback": {
+      "$ref": "#/$defs/ChatPlayback"
+    },
+    "SpeechRequest": {
+      "$ref": "#/$defs/SpeechRequest"
+    },
+    "ProviderCatalog": {
+      "$ref": "#/$defs/ProviderCatalog"
+    },
+    "ProviderList": {
+      "$ref": "#/$defs/ProviderList"
+    },
+    "ProviderTarget": {
+      "$ref": "#/$defs/ProviderTarget"
+    },
+    "ProviderRecord": {
+      "$ref": "#/$defs/ProviderRecord"
+    },
+    "ProviderSave": {
+      "$ref": "#/$defs/ProviderSave"
+    },
+    "Task": {
+      "$ref": "#/$defs/Task"
+    },
+    "NetworkSet": {
+      "$ref": "#/$defs/NetworkSet"
+    },
+    "NarrationRequest": {
+      "$ref": "#/$defs/NarrationRequest"
+    },
+    "AudioRead": {
+      "$ref": "#/$defs/AudioRead"
+    },
+    "AudioData": {
+      "$ref": "#/$defs/AudioData"
+    },
+    "Library": {
+      "$ref": "#/$defs/Library"
+    },
+    "BookCreate": {
+      "$ref": "#/$defs/BookCreate"
+    },
+    "Workspace": {
+      "$ref": "#/$defs/Workspace"
+    },
+    "PreviewImport": {
+      "$ref": "#/$defs/PreviewImport"
+    },
+    "ImportPreview": {
+      "$ref": "#/$defs/ImportPreview"
+    },
+    "FileOperation": {
+      "$ref": "#/$defs/FileOperation"
+    },
+    "OperationTarget": {
+      "$ref": "#/$defs/OperationTarget"
+    },
+    "BackupCreate": {
+      "$ref": "#/$defs/BackupCreate"
+    },
+    "RestorePreview": {
+      "$ref": "#/$defs/RestorePreview"
+    },
+    "ConfirmImport": {
+      "$ref": "#/$defs/ConfirmImport"
+    },
+    "Export": {
+      "$ref": "#/$defs/Export"
+    },
+    "BranchTarget": {
+      "$ref": "#/$defs/BranchTarget"
+    },
+    "BranchFork": {
+      "$ref": "#/$defs/BranchFork"
+    },
+    "History": {
+      "$ref": "#/$defs/History"
+    },
+    "RestoreSnapshot": {
+      "$ref": "#/$defs/RestoreSnapshot"
+    },
+    "ChapterTarget": {
+      "$ref": "#/$defs/ChapterTarget"
+    },
+    "ChapterText": {
+      "$ref": "#/$defs/ChapterText"
+    },
+    "ChapterSave": {
+      "$ref": "#/$defs/ChapterSave"
+    },
+    "ChapterCreate": {
+      "$ref": "#/$defs/ChapterCreate"
+    },
+    "ChapterUpdate": {
+      "$ref": "#/$defs/ChapterUpdate"
+    },
+    "ChapterReorder": {
+      "$ref": "#/$defs/ChapterReorder"
+    },
+    "ChapterRemove": {
+      "$ref": "#/$defs/ChapterRemove"
+    },
+    "PlanningSave": {
+      "$ref": "#/$defs/PlanningSave"
+    },
+    "ContextRequest": {
+      "$ref": "#/$defs/ContextRequest"
+    },
+    "ContextPreview": {
+      "$ref": "#/$defs/ContextPreview"
+    },
+    "Generate": {
+      "$ref": "#/$defs/Generate"
+    },
+    "Accept": {
+      "$ref": "#/$defs/Accept"
+    },
+    "TaskTarget": {
+      "$ref": "#/$defs/TaskTarget"
+    },
+    "TaskList": {
+      "$ref": "#/$defs/TaskList"
+    }
+  },
+  "required": [
+    "Empty",
+    "Health",
+    "RoleplayLibrary",
+    "CharacterTarget",
+    "Character",
+    "LocalMessage",
+    "ChatView",
+    "CharacterSave",
+    "ChatCreate",
+    "ChatTarget",
+    "ChatConfigure",
+    "ChatContextRequest",
+    "ChatContext",
+    "MemorySave",
+    "HistoryChange",
+    "ExportResult",
+    "BookCharacterCopy",
+    "CopyPreview",
+    "ChatSend",
+    "Turn",
+    "TurnTarget",
+    "TurnControl",
+    "ChatPlayback",
+    "SpeechRequest",
+    "ProviderCatalog",
+    "ProviderList",
+    "ProviderTarget",
+    "ProviderRecord",
+    "ProviderSave",
+    "Task",
+    "NetworkSet",
+    "NarrationRequest",
+    "AudioRead",
+    "AudioData",
+    "Library",
+    "BookCreate",
+    "Workspace",
+    "PreviewImport",
+    "ImportPreview",
+    "FileOperation",
+    "OperationTarget",
+    "BackupCreate",
+    "RestorePreview",
+    "ConfirmImport",
+    "Export",
+    "BranchTarget",
+    "BranchFork",
+    "History",
+    "RestoreSnapshot",
+    "ChapterTarget",
+    "ChapterText",
+    "ChapterSave",
+    "ChapterCreate",
+    "ChapterUpdate",
+    "ChapterReorder",
+    "ChapterRemove",
+    "PlanningSave",
+    "ContextRequest",
+    "ContextPreview",
+    "Generate",
+    "Accept",
+    "TaskTarget",
+    "TaskList"
+  ],
+  "title": "Contracts",
+  "type": "object"
+}

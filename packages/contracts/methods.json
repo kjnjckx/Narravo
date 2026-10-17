@@ -1,0 +1,230 @@
+{
+  "system.health": [
+    "Empty",
+    "Health"
+  ],
+  "roleplay.library": [
+    "Empty",
+    "RoleplayLibrary"
+  ],
+  "roleplay.character_get": [
+    "CharacterTarget",
+    "Character"
+  ],
+  "roleplay.local_message": [
+    "LocalMessage",
+    "ChatView"
+  ],
+  "roleplay.character_save": [
+    "CharacterSave",
+    "Character"
+  ],
+  "roleplay.create": [
+    "ChatCreate",
+    "ChatView"
+  ],
+  "roleplay.get": [
+    "ChatTarget",
+    "ChatView"
+  ],
+  "roleplay.configure": [
+    "ChatConfigure",
+    "ChatView"
+  ],
+  "roleplay.preview_context": [
+    "ChatContextRequest",
+    "ChatContext"
+  ],
+  "roleplay.memory_save": [
+    "MemorySave",
+    "ChatView"
+  ],
+  "roleplay.change_history": [
+    "HistoryChange",
+    "ChatView"
+  ],
+  "roleplay.export": [
+    "ChatTarget",
+    "ExportResult"
+  ],
+  "roleplay.copy_book_character": [
+    "BookCharacterCopy",
+    "CopyPreview"
+  ],
+  "roleplay.send": [
+    "ChatSend",
+    "Turn"
+  ],
+  "roleplay.turn_get": [
+    "TurnTarget",
+    "Turn"
+  ],
+  "roleplay.control": [
+    "TurnControl",
+    "Turn"
+  ],
+  "roleplay.silence": [
+    "ChatTarget",
+    "ChatView"
+  ],
+  "roleplay.playback": [
+    "ChatPlayback",
+    "Turn"
+  ],
+  "roleplay.synthesize": [
+    "SpeechRequest",
+    "Turn"
+  ],
+  "provider.catalog": [
+    "Empty",
+    "ProviderCatalog"
+  ],
+  "provider.list": [
+    "Empty",
+    "ProviderList"
+  ],
+  "provider.get": [
+    "ProviderTarget",
+    "ProviderRecord"
+  ],
+  "provider.validate": [
+    "ProviderSave",
+    "ProviderRecord"
+  ],
+  "provider.save": [
+    "ProviderSave",
+    "ProviderRecord"
+  ],
+  "provider.test": [
+    "ProviderTarget",
+    "Task"
+  ],
+  "network.set": [
+    "NetworkSet",
+    "ProviderList"
+  ],
+  "narration.synthesize": [
+    "NarrationRequest",
+    "Task"
+  ],
+  "audio.read": [
+    "AudioRead",
+    "AudioData"
+  ],
+  "book.list": [
+    "Empty",
+    "Library"
+  ],
+  "book.create": [
+    "BookCreate",
+    "Workspace"
+  ],
+  "book.preview_import": [
+    "PreviewImport",
+    "ImportPreview"
+  ],
+  "file.start_import": [
+    "PreviewImport",
+    "FileOperation"
+  ],
+  "file.get": [
+    "OperationTarget",
+    "FileOperation"
+  ],
+  "file.cancel": [
+    "OperationTarget",
+    "FileOperation"
+  ],
+  "backup.create": [
+    "BackupCreate",
+    "FileOperation"
+  ],
+  "backup.preview_restore": [
+    "RestorePreview",
+    "FileOperation"
+  ],
+  "backup.activate_restore": [
+    "OperationTarget",
+    "Library"
+  ],
+  "backup.return_previous": [
+    "OperationTarget",
+    "Library"
+  ],
+  "book.confirm_import": [
+    "ConfirmImport",
+    "Workspace"
+  ],
+  "book.export": [
+    "Export",
+    "ExportResult"
+  ],
+  "branch.get": [
+    "BranchTarget",
+    "Workspace"
+  ],
+  "branch.fork": [
+    "BranchFork",
+    "Workspace"
+  ],
+  "branch.history": [
+    "BranchTarget",
+    "History"
+  ],
+  "branch.restore": [
+    "RestoreSnapshot",
+    "Workspace"
+  ],
+  "chapter.get": [
+    "ChapterTarget",
+    "ChapterText"
+  ],
+  "chapter.save": [
+    "ChapterSave",
+    "Workspace"
+  ],
+  "chapter.create": [
+    "ChapterCreate",
+    "Workspace"
+  ],
+  "chapter.update": [
+    "ChapterUpdate",
+    "Workspace"
+  ],
+  "chapter.reorder": [
+    "ChapterReorder",
+    "Workspace"
+  ],
+  "chapter.remove": [
+    "ChapterRemove",
+    "Workspace"
+  ],
+  "planning.save": [
+    "PlanningSave",
+    "Workspace"
+  ],
+  "writing.preview_context": [
+    "ContextRequest",
+    "ContextPreview"
+  ],
+  "writing.generate": [
+    "Generate",
+    "Task"
+  ],
+  "writing.accept": [
+    "Accept",
+    "Workspace"
+  ],
+  "task.get": [
+    "TaskTarget",
+    "Task"
+  ],
+  "task.list": [
+    "Empty",
+    "TaskList"
+  ],
+  "task.cancel": [
+    "TaskTarget",
+    "Task"
+  ]
+}

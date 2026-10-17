@@ -1,0 +1,11 @@
+node_modules
+.build-tools
+.dev-data
+packages/contracts
+apps/desktop/dist
+apps/desktop/src-tauri/target
+apps/desktop/src-tauri/gen
+pnpm-lock.yaml
+services/engine/uv.lock
+PRD.md
+AGENTS.md
