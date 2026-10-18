@@ -105,6 +105,92 @@ test('no-model original: create, autosave Unicode, chapters, reopen and export',
   await page.screenshot({ path: '.build-tools/workspace.png' });
 });
 
+for (const viewport of [
+  { width: 1440, height: 950 },
+  { width: 1000, height: 700 },
+]) {
+  test(`writing columns scroll independently at ${viewport.width}x${viewport.height}`, async ({
+    page,
+  }) => {
+    await page.setViewportSize(viewport);
+    let workspace = (await rpc('book.create', { title: '独立滚动校验' })).result;
+    workspace = (
+      await rpc('chapter.save', {
+        branch_id: workspace.branch_id,
+        expected_snapshot: workspace.snapshot_id,
+        chapter_id: workspace.chapters[0].id,
+        text: Array.from(
+          { length: 100 },
+          (_, i) => `第${i + 1}段：清晨的风吹过窗台，她翻开笔记，继续写下旅途中的见闻。`,
+        ).join('\n\n'),
+      })
+    ).result;
+    for (let i = 2; i <= 20; i++) {
+      workspace = (
+        await rpc('chapter.create', {
+          branch_id: workspace.branch_id,
+          expected_snapshot: workspace.snapshot_id,
+          title: `第${i}章`,
+        })
+      ).result;
+    }
+    await page.reload();
+    await page.getByRole('button', { name: /独立滚动校验.*原创/ }).click();
+    const paper = page.getByRole('region', { name: '正文滚动区', exact: true });
+    const chapters = page.getByRole('region', { name: '章节目录', exact: true });
+    const inspector = page.getByRole('complementary', { name: '写作与朗读面板', exact: true });
+    const initialPositions = await Promise.all([
+      page.locator('.document-header').boundingBox(),
+      page.locator('.chapter-panel').boundingBox(),
+      inspector.boundingBox(),
+    ]);
+    const paperBox = (await paper.boundingBox())!;
+    await page.mouse.move(paperBox.x + paperBox.width / 2, paperBox.y + paperBox.height / 2);
+    await page.mouse.wheel(0, 650);
+    await expect.poll(() => paper.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    expect(await chapters.evaluate((el) => el.scrollTop)).toBe(0);
+    expect(await inspector.evaluate((el) => el.scrollTop)).toBe(0);
+    expect(
+      await Promise.all([
+        page.locator('.document-header').boundingBox(),
+        page.locator('.chapter-panel').boundingBox(),
+        inspector.boundingBox(),
+      ]),
+    ).toEqual(initialPositions);
+    await expect(page.locator('.document-footer')).toBeInViewport();
+    const paperScroll = await paper.evaluate((el) => el.scrollTop);
+    const inspectorBox = (await inspector.boundingBox())!;
+    await page.mouse.move(
+      inspectorBox.x + inspectorBox.width / 2,
+      inspectorBox.y + inspectorBox.height / 2,
+    );
+    await page.mouse.wheel(0, 650);
+    await expect.poll(() => inspector.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    expect(await paper.evaluate((el) => el.scrollTop)).toBe(paperScroll);
+    const chaptersBox = (await chapters.boundingBox())!;
+    await page.mouse.move(
+      chaptersBox.x + chaptersBox.width / 2,
+      chaptersBox.y + chaptersBox.height / 2,
+    );
+    await page.mouse.wheel(0, 650);
+    await expect.poll(() => chapters.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    expect(await paper.evaluate((el) => el.scrollTop)).toBe(paperScroll);
+    // Reaching the end of the prose must not start moving the surrounding page.
+    await paper.evaluate((el) => {
+      el.scrollTop = el.scrollHeight;
+    });
+    await page.mouse.move(paperBox.x + paperBox.width / 2, paperBox.y + paperBox.height / 2);
+    await page.mouse.wheel(0, 1500);
+    expect(
+      await page.evaluate(() => ({
+        y: window.scrollY,
+        overflow: document.documentElement.scrollHeight > window.innerHeight,
+      })),
+    ).toEqual({ y: 0, overflow: false });
+    await page.screenshot({ path: `.build-tools/independent-scroll-${viewport.width}.png` });
+  });
+}
+
 test('demo stream remains a candidate until edited acceptance and planning conflict is visible', async ({
   page,
 }) => {
@@ -149,6 +235,31 @@ test('TXT preview precedes library creation and imported text uses same editor',
   await expect(page.getByText('导入作品', { exact: true })).toBeVisible();
 });
 
+test('continue without intent saves the latest prose and keeps the result a candidate', async ({
+  page,
+}) => {
+  await page.getByRole('button', { name: /写下一个新世界/ }).click();
+  await page.getByRole('button', { name: '开始创作' }).click();
+  const editor = page.getByRole('textbox', { name: '章节正文' });
+  await expect(page.getByRole('button', { name: '生成演示候选', exact: true })).toBeDisabled();
+  await editor.fill('那是我高中的时候，😀');
+  const continueButton = page.getByRole('button', { name: '继续写（演示）', exact: true });
+  await expect(continueButton).toBeEnabled();
+  // Click without waiting for autosave: generation must flush this latest text first.
+  await continueButton.click();
+  await expect(page.getByLabel('接纳内容（可编辑）')).toHaveValue(/从末尾自然续写/);
+  await expect(editor).toHaveText('那是我高中的时候，😀');
+  await page.getByRole('button', { name: '查看本次上下文' }).click();
+  await expect(page.getByRole('dialog')).toContainText('那是我高中的时候，😀');
+  await page.getByRole('button', { name: '关闭', exact: true }).click();
+  await page.getByRole('button', { name: '新建章节', exact: true }).click();
+  await expect(editor).toBeEmpty();
+  await expect(continueButton).toBeEnabled();
+  await continueButton.click();
+  await expect(page.getByLabel('接纳内容（可编辑）')).toBeVisible();
+  await expect(editor).toBeEmpty();
+});
+
 test('branch edits can be restored without changing parent and tasks reopen after refresh', async ({
   page,
 }) => {
@@ -176,6 +287,47 @@ test('branch edits can be restored without changing parent and tasks reopen afte
   await page.getByRole('button', { name: /未命名作品.*打开候选/ }).click();
   await expect(page.getByLabel('接纳内容（可编辑）')).toBeVisible();
   await expect(editor).toHaveText('父分支的正文');
+});
+
+test('settings is a page with navigation and returns to the current writing draft', async ({
+  page,
+}) => {
+  await page.getByRole('button', { name: /写下一个新世界/ }).click();
+  await page.getByRole('button', { name: '开始创作' }).click();
+  const editor = page.getByRole('textbox', { name: '章节正文' });
+  await editor.fill('保留正在创作的正文。😀');
+  await page.getByLabel('本次创作意图').fill('还没提交的创作方向');
+  const entry = page.getByRole('button', { name: '管理 TTS 配置', exact: true });
+  await entry.click();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('main')).toHaveAccessibleName('模型与语音设置');
+  await expect(page.getByRole('heading', { name: '模型与语音设置' })).toBeFocused();
+  await expect(page.getByRole('button', { name: '模型设置', exact: true })).toHaveAttribute(
+    'aria-current',
+    'page',
+  );
+  await expect(page.getByRole('tabpanel', { name: '语音模型（TTS）', exact: true })).toBeVisible();
+  await expect(editor).not.toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.getByRole('heading', { name: '模型与语音设置' })).toBeVisible();
+  for (const width of [1440, 850, 640]) {
+    await page.setViewportSize({ width, height: 950 });
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+    ).toBe(true);
+    await page.screenshot({ path: `.build-tools/settings-page-${width}.png` });
+  }
+  await page.setViewportSize({ width: 1440, height: 950 });
+  await page.getByRole('button', { name: '返回创作', exact: true }).click();
+  await expect(entry).toBeFocused();
+  await expect(editor).toHaveText('保留正在创作的正文。😀');
+  await expect(page.getByLabel('本次创作意图')).toHaveValue('还没提交的创作方向');
+  await page.getByRole('button', { name: '模型设置', exact: true }).click();
+  await page.getByRole('button', { name: '创作', exact: true }).click();
+  await expect(editor).toHaveText('保留正在创作的正文。😀');
+  await page.getByRole('button', { name: '模型设置', exact: true }).click();
+  await page.getByRole('button', { name: '作品库', exact: true }).click();
+  await expect(page.getByRole('heading', { name: /我的作品/ })).toBeVisible();
 });
 
 test('LLM and TTS have independent drafts, keys, saved lists and persistence', async ({ page }) => {
@@ -241,12 +393,12 @@ test('LLM and TTS have independent drafts, keys, saved lists and persistence', a
   await tts.getByRole('button', { name: /独立语音配置/ }).click();
   await expect(tts.getByLabel('音色 ID', { exact: true })).toHaveValue('alloy');
   await page.screenshot({ path: '.build-tools/separate-tts-settings.png' });
-  await page.getByRole('button', { name: '关闭', exact: true }).click();
+  await page.getByRole('button', { name: '返回作品库', exact: true }).click();
   await page.getByRole('button', { name: /写下一个新世界/ }).click();
   await page.getByRole('button', { name: '开始创作' }).click();
   await page.getByRole('button', { name: '管理 TTS 配置', exact: true }).click();
   await expect(tts).toBeVisible();
-  await page.getByRole('button', { name: '关闭', exact: true }).click();
+  await page.getByRole('button', { name: '返回创作', exact: true }).click();
   await page.getByRole('button', { name: '管理 LLM 配置', exact: true }).click();
   await expect(llm).toBeVisible();
 });
@@ -272,7 +424,7 @@ test('model settings save then use configured text and speech adapters with cach
   await tts.getByLabel('此服务需要 API Key', { exact: true }).uncheck();
   await tts.getByRole('button', { name: '保存 TTS 配置', exact: true }).click();
   await expect(tts.getByRole('status').first()).toContainText('TTS 配置已保存');
-  await page.getByRole('button', { name: '关闭', exact: true }).click();
+  await page.getByRole('button', { name: '返回作品库', exact: true }).click();
   await page.getByRole('button', { name: /写下一个新世界/ }).click();
   await page.getByRole('button', { name: '开始创作' }).click();
   await page.getByRole('textbox', { name: '章节正文' }).fill('很久以前，有一个国王。');
@@ -282,6 +434,12 @@ test('model settings save then use configured text and speech adapters with cach
   await page.getByRole('button', { name: '接纳候选', exact: true }).click();
   await expect(page.getByRole('textbox', { name: '章节正文' })).toContainText(
     '国王发现王冠失踪了。😀',
+  );
+  await page.getByLabel('本次创作意图').fill('');
+  await page.getByRole('button', { name: '继续写', exact: true }).click();
+  await expect(page.getByLabel('接纳内容（可编辑）')).toBeVisible();
+  await expect(page.getByRole('textbox', { name: '章节正文' })).toHaveText(
+    '很久以前，有一个国王。国王发现王冠失踪了。😀',
   );
   await page.getByRole('button', { name: '准备本章语音', exact: true }).click();
   await page.getByRole('button', { name: '开始合成（可能计费）', exact: true }).click();
@@ -298,6 +456,13 @@ test('model settings save then use configured text and speech adapters with cach
   await page.screenshot({ path: '.build-tools/providers-workspace.png' });
   await page.getByRole('textbox', { name: '章节正文' }).fill('正文已经改变');
   await expect(page.getByText('正文已修改，此音频基于旧修订，已暂停。')).toBeVisible();
+  await page.getByRole('button', { name: '管理 LLM 配置', exact: true }).click();
+  await page.getByLabel('允许外部模型请求').uncheck();
+  await page.getByRole('button', { name: '返回创作', exact: true }).click();
+  await expect(page.getByRole('button', { name: '继续写', exact: true })).toBeDisabled();
+  await expect(page.getByRole('status').filter({ hasText: '外部模型请求已关闭' })).toBeVisible();
+  await page.getByRole('button', { name: '前往设置开启外部模型请求', exact: true }).click();
+  await expect(page.getByLabel('允许外部模型请求')).not.toBeChecked();
 });
 
 test('EPUB uses spine order and PDF requires accepting omitted pages', async ({ page }) => {
@@ -463,6 +628,13 @@ test('roleplay local: independent characters, user persona, no-model message, re
     )!,
   });
   await page.getByRole('button', { name: '创建会话', exact: true }).click();
+  await page.getByLabel('聊天消息', { exact: true }).fill('尚未发送的聊天草稿');
+  await page
+    .getByRole('navigation', { name: '主导航' })
+    .getByRole('button', { name: '模型设置', exact: true })
+    .click();
+  await page.getByRole('button', { name: '返回角色扮演', exact: true }).click();
+  await expect(page.getByLabel('聊天消息', { exact: true })).toHaveValue('尚未发送的聊天草稿');
   await page
     .getByLabel('聊天消息', { exact: true })
     .fill(

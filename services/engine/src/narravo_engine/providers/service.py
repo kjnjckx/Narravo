@@ -175,13 +175,13 @@ class ProviderService:
     def start_writing(self, p: c.Generate, secret: str) -> c.Task:
         from ..domain import require
 
-        require(bool(p.intent.strip()), "EMPTY_INTENT", "请先填写本次创作意图。")
         config = self.config(p.config_id, secret, "llm")
         with self.domain.db.transaction() as conn:
             state = self.domain.state(conn, p.branch_id, p.expected_snapshot)
             chapter = self.domain.chapter(state, p.chapter_id)
             context = self.domain.context(conn, p, config.context_limit, config.max_output_tokens)
-            messages = writing_messages(context.model_dump(), p.intent)
+            intent = self.domain.writing_intent(p.intent, context)
+            messages = writing_messages(context.model_dump(), intent)
             estimate = len(json.dumps(messages, ensure_ascii=False).encode("utf-8"))
             require(
                 estimate + config.max_output_tokens + 512 <= config.context_limit,

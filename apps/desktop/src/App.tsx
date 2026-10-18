@@ -108,10 +108,35 @@ export function App() {
   const [llmId, setLlmId] = useState(() => localStorage.getItem('narravo.llm') ?? 'demo');
   const [ttsId, setTtsId] = useState(() => localStorage.getItem('narravo.tts') ?? '');
   const [settingsKind, setSettingsKind] = useState<'llm' | 'tts'>('llm');
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const settingsHeading = useRef<HTMLHeadingElement>(null);
+  const settingsOrigin = useRef<{ element: HTMLElement | null; scroll: number }>({
+    element: null,
+    scroll: 0,
+  });
   function openSettings(kind: 'llm' | 'tts') {
+    if (!settingsOpen) {
+      settingsOrigin.current = {
+        element: document.activeElement instanceof HTMLElement ? document.activeElement : null,
+        scroll: window.scrollY,
+      };
+    }
     setSettingsKind(kind);
-    setModal('settings');
+    setSettingsOpen(true);
   }
+  function returnFromSettings() {
+    setSettingsOpen(false);
+    requestAnimationFrame(() => {
+      window.scrollTo(0, settingsOrigin.current.scroll);
+      settingsOrigin.current.element?.focus({ preventScroll: true });
+    });
+  }
+  useEffect(() => {
+    if (settingsOpen) {
+      settingsHeading.current?.focus({ preventScroll: true });
+      window.scrollTo(0, 0);
+    }
+  }, [settingsOpen]);
   const [audioTask, setAudioTask] = useState<Task | null>(null);
   const [showNarrationConfirm, setShowNarrationConfirm] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -119,7 +144,6 @@ export function App() {
     | 'create'
     | 'import'
     | 'backup'
-    | 'settings'
     | 'fork'
     | 'chapter'
     | 'plan'
@@ -350,6 +374,7 @@ export function App() {
     setPolicy(next.origin_type === 'original' ? 'author_plan' : 'reader_safe');
   }
   async function back() {
+    setSettingsOpen(false);
     setSurface('books');
     stopAudioFocus();
     await flush();
@@ -380,6 +405,19 @@ export function App() {
     }
   }
   const currentMeta = w?.chapters.find((c) => c.id === chapter?.chapter_id);
+  const chapterIndex = w?.chapters.findIndex((c) => c.id === chapter?.chapter_id) ?? -1;
+  const hasPrecedingText =
+    !!text.trim() ||
+    !!w?.chapters.slice(0, Math.max(0, chapterIndex)).some((c) => c.word_count > 0);
+  const hasWritingContext =
+    policy === 'full_rewrite'
+      ? !!w?.chapters.some(
+          (c) =>
+            rewriteIds.includes(c.id) &&
+            (c.id === chapter?.chapter_id ? !!text.trim() : c.word_count > 0),
+        )
+      : hasPrecedingText;
+  const externalDisabled = llmId !== 'demo' && !providerState.external_enabled;
   const target = () => ({
     branch_id: useWork.getState().workspace!.branch_id,
     chapter_id: useWork.getState().chapter!.chapter_id,
@@ -435,7 +473,9 @@ export function App() {
         </button>
         <div className="rail-links">
           <button
-            className={surface === 'books' && !w ? 'rail-link active' : 'rail-link'}
+            className={
+              !settingsOpen && surface === 'books' && !w ? 'rail-link active' : 'rail-link'
+            }
             onClick={() => void action(back)}
             disabled={busy}
             title="作品库"
@@ -445,9 +485,10 @@ export function App() {
             <span>作品</span>
           </button>
           <button
-            className={surface === 'books' && w ? 'rail-link active' : 'rail-link'}
+            className={!settingsOpen && surface === 'books' && w ? 'rail-link active' : 'rail-link'}
             disabled={!w || busy}
             onClick={() => {
+              setSettingsOpen(false);
               setSurface('books');
               setTab('writing');
             }}
@@ -457,7 +498,7 @@ export function App() {
             <span>创作</span>
           </button>
           <button
-            className={surface === 'roleplay' ? 'rail-link active' : 'rail-link'}
+            className={!settingsOpen && surface === 'roleplay' ? 'rail-link active' : 'rail-link'}
             aria-label="角色扮演"
             onClick={() =>
               void action(async () => {
@@ -465,6 +506,7 @@ export function App() {
                 stopAudioFocus();
                 if (audioTask?.status === 'running')
                   setAudioTask(await rpc('task.cancel', { task_id: audioTask.task_id }));
+                setSettingsOpen(false);
                 setSurface('roleplay');
               })
             }
@@ -479,20 +521,33 @@ export function App() {
           </button>
         </div>
         <div className="rail-bottom">
-          <button className="rail-link" onClick={() => openSettings('llm')} aria-label="模型设置">
+          <button
+            className={settingsOpen ? 'rail-link active' : 'rail-link'}
+            aria-current={settingsOpen ? 'page' : undefined}
+            onClick={() => openSettings('llm')}
+            aria-label="模型设置"
+          >
             <Settings2 size={21} />
             <span>设置</span>
           </button>
           <div className="avatar">叙</div>
         </div>
       </nav>
-      <div className="main-shell">
+      <div
+        className={
+          !settingsOpen && surface === 'books' && w ? 'main-shell workspace-shell' : 'main-shell'
+        }
+      >
         <header className="topbar">
           <div className="wordmark">
             叙声 <span>NARRAVO</span>
           </div>
           <div className="breadcrumb">
-            {w ? (
+            {settingsOpen ? (
+              <span>设置</span>
+            ) : surface === 'roleplay' ? (
+              <span>角色扮演</span>
+            ) : w ? (
               <>
                 <span>作品库</span>
                 <ChevronRight size={13} />
@@ -528,754 +583,813 @@ export function App() {
             {notice}
           </div>
         )}
-        {surface === 'roleplay' ? (
-          <Roleplay
-            providers={providerState}
-            llmId={llmId}
-            ttsId={ttsId}
-            setLlmId={setLlmId}
-            setTtsId={setTtsId}
-            openSettings={openSettings}
-            openBackup={() => {
-              stopAudioFocus();
-              setSurface('books');
-              setModal('backup');
-            }}
-          />
-        ) : !w ? (
-          <main className="library">
-            <div className="library-intro">
-              <div>
-                <div className="eyebrow">YOUR STORY STARTS HERE</div>
-                <h1>
-                  让故事，<em>有声有色。</em>
-                </h1>
-                <p>
-                  从一个灵感出发，或重逢一本好书。
-                  <br />
-                  在叙声，把文字写成属于你的世界。
-                </p>
-              </div>
-              <div className="intro-art" aria-hidden="true">
-                <div className="art-orbit orbit-one" />
-                <div className="art-orbit orbit-two" />
-                <div className="art-book">
-                  <span>叙</span>
-                  <i />
-                  <small>
-                    A WORLD
-                    <br />
-                    IN WORDS.
-                  </small>
-                </div>
-                <div className="art-note">
-                  <AudioLines size={32} />
-                </div>
-                <span className="art-star">✦</span>
-              </div>
-            </div>
-            <div className="entry-grid">
-              <button
-                className="entry-card create-card"
-                disabled={!ready || busy}
-                onClick={() => {
-                  setTitle('');
-                  setModal('create');
-                }}
-              >
-                <span className="entry-icon">
-                  <Feather size={24} />
-                </span>
-                <div>
-                  <span className="entry-kicker">从零开始</span>
-                  <h2>写下一个新世界</h2>
-                  <p>空白手写、一句灵感，让故事从这里生长。</p>
-                </div>
-                <span className="round-arrow">
-                  <Plus size={20} />
-                </span>
-              </button>
-              <button
-                className="entry-card import-card"
-                disabled={!ready || busy}
-                onClick={() => {
-                  if (!fileRunning) setPreview(null);
-                  setTitle('');
-                  setModal('import');
-                }}
-              >
-                <span className="entry-icon">
-                  <FolderOpen size={24} />
-                </span>
-                <div>
-                  <span className="entry-kicker">继续一段旅程</span>
-                  <h2>导入你的小说</h2>
-                  <p>导入 TXT、EPUB、PDF，与故事再次相遇。</p>
-                </div>
-                <span className="round-arrow">
-                  <ArrowRight size={20} />
-                </span>
-              </button>
-            </div>
-            <button
-              className="outline-button"
-              disabled={!ready || busy}
-              onClick={() => setModal('backup')}
-            >
-              <Download size={16} /> 备份与恢复
+        {settingsOpen && (
+          <main className="settings-page" aria-labelledby="settings-title">
+            <button className="back-link" onClick={returnFromSettings}>
+              <ArrowLeft size={15} />
+              {surface === 'roleplay' ? '返回角色扮演' : w ? '返回创作' : '返回作品库'}
             </button>
-            <section className="books-section">
-              <div className="section-heading">
-                <h2>
-                  我的作品 <span>{books.length.toString().padStart(2, '0')}</span>
-                </h2>
-                <label className="search">
-                  <Search size={16} />
-                  <input
-                    placeholder="搜索作品名称"
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                  />
-                </label>
+            <div className="settings-page-heading">
+              <div>
+                <div className="eyebrow">MAKE IT YOURS</div>
+                <h1 id="settings-title" ref={settingsHeading} tabIndex={-1}>
+                  模型与语音设置
+                </h1>
+                <p className="muted">管理创作与朗读使用的服务，按需连接你的模型。</p>
               </div>
-              {books.length === 0 ? (
-                <div className="empty-library">
-                  <div className="empty-icon">
-                    <BookOpen size={30} />
-                  </div>
-                  <h3>这里，等着你的第一个故事</h3>
-                  <p>新建一部作品，或导入一本小说。无需配置模型即可开始写作。</p>
-                  <span>文字会被珍藏，故事会有回声。</span>
-                </div>
-              ) : (
-                <div className="book-grid">
-                  {books
-                    .filter((b) => b.title.toLowerCase().includes(search.toLowerCase()))
-                    .map((book, i) => (
-                      <button
-                        key={book.book_id}
-                        className="book-card"
-                        disabled={busy}
-                        onClick={() =>
-                          void action(async () => {
-                            await enter(await rpc('branch.get', { branch_id: book.branch_id }));
-                          })
-                        }
-                      >
-                        <div className={`book-cover cover-${i % 3}`}>
-                          <span className="cover-number">
-                            N° {(i + 1).toString().padStart(2, '0')}
-                          </span>
-                          <strong>{book.title}</strong>
-                          <Feather size={26} />
-                          <small>NARRAVO · 叙声</small>
-                        </div>
-                        <h3>{book.title}</h3>
-                        <p>
-                          <span className="source-tag">
-                            {book.origin_type === 'original' ? '原创' : '导入'}
-                          </span>
-                          {book.chapter_count} 章 · {book.word_count.toLocaleString()} 字
-                        </p>
-                        <small>
-                          最近编辑 {new Date(book.updated_at).toLocaleDateString('zh-CN')}
-                        </small>
-                      </button>
-                    ))}
-                </div>
-              )}
+              <Settings2 size={28} aria-hidden="true" />
+            </div>
+            <section className="settings-page-card" aria-label="模型服务配置">
+              <ProviderSettings
+                initialKind={settingsKind}
+                state={providerState}
+                refresh={refreshProviders}
+                onSaved={(config) => {
+                  if (config.kind === 'llm') setLlmId(config.id);
+                  else setTtsId(config.id);
+                }}
+              />
             </section>
-            <footer className="library-footer">
-              <span>
-                <span className="status-dot" /> 本地保存，安心创作
-              </span>
-              <span>
-                {providerState.external_enabled
-                  ? '外部服务已启用 · 仅在显式请求时调用'
-                  : '外部模型请求已关闭'}
-              </span>
-            </footer>
           </main>
-        ) : (
-          <div className="workspace">
-            <aside className="chapter-panel">
-              <button className="back-link" disabled={busy} onClick={() => void action(back)}>
-                <ArrowLeft size={15} />
-                返回作品库
-              </button>
-              <div className="work-title">
-                <span className="source-tag">
-                  {w.origin_type === 'original' ? '原创作品' : '导入作品'}
-                </span>
-                <h2>{w.title}</h2>
-                <p>
-                  {w.chapters.length} 章 <span>·</span> {w.word_count.toLocaleString()} 字
-                </p>
+        )}
+        <div className="surface-content" hidden={settingsOpen}>
+          {surface === 'roleplay' ? (
+            <Roleplay
+              providers={providerState}
+              llmId={llmId}
+              ttsId={ttsId}
+              setLlmId={setLlmId}
+              setTtsId={setTtsId}
+              openSettings={openSettings}
+              openBackup={() => {
+                stopAudioFocus();
+                setSurface('books');
+                setModal('backup');
+              }}
+            />
+          ) : !w ? (
+            <main className="library">
+              <div className="library-intro">
+                <div>
+                  <div className="eyebrow">YOUR STORY STARTS HERE</div>
+                  <h1>
+                    让故事，<em>有声有色。</em>
+                  </h1>
+                  <p>
+                    从一个灵感出发，或重逢一本好书。
+                    <br />
+                    在叙声，把文字写成属于你的世界。
+                  </p>
+                </div>
+                <div className="intro-art" aria-hidden="true">
+                  <div className="art-orbit orbit-one" />
+                  <div className="art-orbit orbit-two" />
+                  <div className="art-book">
+                    <span>叙</span>
+                    <i />
+                    <small>
+                      A WORLD
+                      <br />
+                      IN WORDS.
+                    </small>
+                  </div>
+                  <div className="art-note">
+                    <AudioLines size={32} />
+                  </div>
+                  <span className="art-star">✦</span>
+                </div>
               </div>
-              <div className="branch-control">
-                <GitBranch size={15} />
-                <select
-                  aria-label="当前分支"
-                  value={w.branch_id}
-                  disabled={busy || taskRunning}
-                  onChange={(e) =>
-                    void action(async () => {
-                      await flush();
-                      await enter(await rpc('branch.get', { branch_id: e.target.value }));
-                    })
-                  }
-                >
-                  {w.branches.map((b) => (
-                    <option key={b.id} value={b.id}>
-                      {b.name}
-                    </option>
-                  ))}
-                </select>
+              <div className="entry-grid">
                 <button
-                  aria-label="创建分支"
-                  disabled={busy || taskRunning}
+                  className="entry-card create-card"
+                  disabled={!ready || busy}
                   onClick={() => {
-                    setTitle('新的可能');
-                    setModal('fork');
+                    setTitle('');
+                    setModal('create');
                   }}
                 >
-                  <Plus size={15} />
+                  <span className="entry-icon">
+                    <Feather size={24} />
+                  </span>
+                  <div>
+                    <span className="entry-kicker">从零开始</span>
+                    <h2>写下一个新世界</h2>
+                    <p>空白手写、一句灵感，让故事从这里生长。</p>
+                  </div>
+                  <span className="round-arrow">
+                    <Plus size={20} />
+                  </span>
                 </button>
-              </div>
-              <div className="chapter-heading">
-                <span>章节目录</span>
                 <button
-                  aria-label="新建章节"
-                  disabled={busy || taskRunning}
-                  onClick={() =>
-                    void action(async () => {
-                      await flush();
-                      const current = useWork.getState().workspace!;
-                      const next = await rpc('chapter.create', {
-                        branch_id: current.branch_id,
-                        expected_snapshot: current.snapshot_id,
-                        title: `第${current.chapters.length + 1}章`,
-                      });
-                      await openWorkspace(next, next.chapters.at(-1)!.id);
-                      setTask(null);
-                    })
-                  }
+                  className="entry-card import-card"
+                  disabled={!ready || busy}
+                  onClick={() => {
+                    if (!fileRunning) setPreview(null);
+                    setTitle('');
+                    setModal('import');
+                  }}
                 >
-                  <Plus size={17} />
+                  <span className="entry-icon">
+                    <FolderOpen size={24} />
+                  </span>
+                  <div>
+                    <span className="entry-kicker">继续一段旅程</span>
+                    <h2>导入你的小说</h2>
+                    <p>导入 TXT、EPUB、PDF，与故事再次相遇。</p>
+                  </div>
+                  <span className="round-arrow">
+                    <ArrowRight size={20} />
+                  </span>
                 </button>
               </div>
-              <div className="chapter-list">
-                {w.chapters.map((ch, i) => (
+              <button
+                className="outline-button"
+                disabled={!ready || busy}
+                onClick={() => setModal('backup')}
+              >
+                <Download size={16} /> 备份与恢复
+              </button>
+              <section className="books-section">
+                <div className="section-heading">
+                  <h2>
+                    我的作品 <span>{books.length.toString().padStart(2, '0')}</span>
+                  </h2>
+                  <label className="search">
+                    <Search size={16} />
+                    <input
+                      placeholder="搜索作品名称"
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                    />
+                  </label>
+                </div>
+                {books.length === 0 ? (
+                  <div className="empty-library">
+                    <div className="empty-icon">
+                      <BookOpen size={30} />
+                    </div>
+                    <h3>这里，等着你的第一个故事</h3>
+                    <p>新建一部作品，或导入一本小说。无需配置模型即可开始写作。</p>
+                    <span>文字会被珍藏，故事会有回声。</span>
+                  </div>
+                ) : (
+                  <div className="book-grid">
+                    {books
+                      .filter((b) => b.title.toLowerCase().includes(search.toLowerCase()))
+                      .map((book, i) => (
+                        <button
+                          key={book.book_id}
+                          className="book-card"
+                          disabled={busy}
+                          onClick={() =>
+                            void action(async () => {
+                              await enter(await rpc('branch.get', { branch_id: book.branch_id }));
+                            })
+                          }
+                        >
+                          <div className={`book-cover cover-${i % 3}`}>
+                            <span className="cover-number">
+                              N° {(i + 1).toString().padStart(2, '0')}
+                            </span>
+                            <strong>{book.title}</strong>
+                            <Feather size={26} />
+                            <small>NARRAVO · 叙声</small>
+                          </div>
+                          <h3>{book.title}</h3>
+                          <p>
+                            <span className="source-tag">
+                              {book.origin_type === 'original' ? '原创' : '导入'}
+                            </span>
+                            {book.chapter_count} 章 · {book.word_count.toLocaleString()} 字
+                          </p>
+                          <small>
+                            最近编辑 {new Date(book.updated_at).toLocaleDateString('zh-CN')}
+                          </small>
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </section>
+              <footer className="library-footer">
+                <span>
+                  <span className="status-dot" /> 本地保存，安心创作
+                </span>
+                <span>
+                  {providerState.external_enabled
+                    ? '外部服务已启用 · 仅在显式请求时调用'
+                    : '外部模型请求已关闭'}
+                </span>
+              </footer>
+            </main>
+          ) : (
+            <div className="workspace">
+              <aside className="chapter-panel">
+                <button className="back-link" disabled={busy} onClick={() => void action(back)}>
+                  <ArrowLeft size={15} />
+                  返回作品库
+                </button>
+                <div className="work-title">
+                  <span className="source-tag">
+                    {w.origin_type === 'original' ? '原创作品' : '导入作品'}
+                  </span>
+                  <h2>{w.title}</h2>
+                  <p>
+                    {w.chapters.length} 章 <span>·</span> {w.word_count.toLocaleString()} 字
+                  </p>
+                </div>
+                <div className="branch-control">
+                  <GitBranch size={15} />
+                  <select
+                    aria-label="当前分支"
+                    value={w.branch_id}
+                    disabled={busy || taskRunning}
+                    onChange={(e) =>
+                      void action(async () => {
+                        await flush();
+                        await enter(await rpc('branch.get', { branch_id: e.target.value }));
+                      })
+                    }
+                  >
+                    {w.branches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.name}
+                      </option>
+                    ))}
+                  </select>
                   <button
-                    className={`chapter-link ${chapter?.chapter_id === ch.id ? 'selected' : ''}`}
-                    key={ch.id}
+                    aria-label="创建分支"
+                    disabled={busy || taskRunning}
+                    onClick={() => {
+                      setTitle('新的可能');
+                      setModal('fork');
+                    }}
+                  >
+                    <Plus size={15} />
+                  </button>
+                </div>
+                <div className="chapter-heading">
+                  <span>章节目录</span>
+                  <button
+                    aria-label="新建章节"
                     disabled={busy || taskRunning}
                     onClick={() =>
                       void action(async () => {
                         await flush();
-                        await openWorkspace(useWork.getState().workspace!, ch.id);
+                        const current = useWork.getState().workspace!;
+                        const next = await rpc('chapter.create', {
+                          branch_id: current.branch_id,
+                          expected_snapshot: current.snapshot_id,
+                          title: `第${current.chapters.length + 1}章`,
+                        });
+                        await openWorkspace(next, next.chapters.at(-1)!.id);
                         setTask(null);
                       })
                     }
                   >
-                    <span className="chapter-number">{(i + 1).toString().padStart(2, '0')}</span>
-                    <span>
-                      <strong>{ch.title}</strong>
-                      <small>
-                        {ch.word_count} 字 ·{' '}
-                        {ch.status === 'draft'
-                          ? '草稿'
-                          : ch.status === 'revising'
-                            ? '修订中'
-                            : '已完成'}
-                      </small>
-                    </span>
-                    {chapter?.chapter_id === ch.id && <span className="chapter-dot" />}
-                  </button>
-                ))}
-              </div>
-              <div className="sidebar-note">
-                <Feather size={17} />
-                <p>
-                  不必等故事完整，
-                  <br />
-                  先写下你想写的一页。
-                </p>
-              </div>
-            </aside>
-            <main className="writing-main">
-              <div className="document-header">
-                <div>
-                  <span className="eyebrow">WRITING STUDIO</span>
-                  <h1>{currentMeta?.title}</h1>
-                </div>
-                <div className="document-actions">
-                  <span className="save-state" role="status">
-                    {saving ? (
-                      <>
-                        <LoaderCircle size={13} />
-                        保存中
-                      </>
-                    ) : dirty ? (
-                      '待保存'
-                    ) : (
-                      <>
-                        <Check size={13} />
-                        已保存到本地
-                      </>
-                    )}
-                  </span>
-                  <button
-                    className="subtle-button"
-                    disabled={busy || taskRunning}
-                    onClick={() =>
-                      void action(async () => {
-                        await flush();
-                        setHistory(
-                          (await rpc('branch.history', { branch_id: w.branch_id })).entries,
-                        );
-                        setModal('history');
-                      })
-                    }
-                  >
-                    版本历史
-                  </button>
-                  <button
-                    className="subtle-button"
-                    disabled={busy || taskRunning}
-                    onClick={() => {
-                      setTitle(currentMeta?.title ?? '');
-                      setModal('chapter');
-                    }}
-                  >
-                    章节管理
-                  </button>
-                  <select
-                    className="export-format"
-                    aria-label="导出格式"
-                    value={exportFormat}
-                    onChange={(e) => setExportFormat(e.target.value as 'txt' | 'md')}
-                  >
-                    <option value="txt">TXT</option>
-                    <option value="md">Markdown</option>
-                  </select>
-                  <button
-                    className="subtle-button"
-                    disabled={busy}
-                    onClick={() =>
-                      void action(async () => {
-                        await flush();
-                        if (await exportBook(w.branch_id, exportFormat))
-                          setNotice('正文已导出，不含设定与候选');
-                      })
-                    }
-                  >
-                    <Download size={15} />
-                    导出
+                    <Plus size={17} />
                   </button>
                 </div>
-              </div>
-              <div className="document-paper">
-                <Editor key={`${w.branch_id}:${chapter?.chapter_id}`} disabled={busy} />
-              </div>
-              <div className="document-footer">
-                <span>
-                  {wordCount(text).toLocaleString()} 字 <span>·</span> 当前章节
-                </span>
-                <button onClick={() => void action(prepareNarration)}>
-                  <Headphones size={15} />
-                  试听本章
-                </button>
-                <span>正文修订独立保存</span>
-              </div>
-            </main>
-            <aside className="inspector">
-              <div className="inspector-tabs">
-                <button
-                  className={tab === 'writing' ? 'active' : ''}
-                  onClick={() => setTab('writing')}
-                >
-                  <Sparkles size={15} />
-                  写作助手
-                </button>
-                <button
-                  className={tab === 'planning' ? 'active' : ''}
-                  onClick={() => setTab('planning')}
-                >
-                  <BookOpen size={15} />
-                  故事设定
-                </button>
-              </div>
-              {tab === 'planning' ? (
-                <div className="inspector-body">
-                  <div className="panel-title">
-                    <h3>让世界逐渐清晰</h3>
+                <div className="chapter-list" role="region" aria-label="章节目录" tabIndex={0}>
+                  {w.chapters.map((ch, i) => (
                     <button
-                      aria-label="添加设定"
+                      className={`chapter-link ${chapter?.chapter_id === ch.id ? 'selected' : ''}`}
+                      key={ch.id}
+                      disabled={busy || taskRunning}
+                      onClick={() =>
+                        void action(async () => {
+                          await flush();
+                          await openWorkspace(useWork.getState().workspace!, ch.id);
+                          setTask(null);
+                        })
+                      }
+                    >
+                      <span className="chapter-number">{(i + 1).toString().padStart(2, '0')}</span>
+                      <span>
+                        <strong>{ch.title}</strong>
+                        <small>
+                          {ch.word_count} 字 ·{' '}
+                          {ch.status === 'draft'
+                            ? '草稿'
+                            : ch.status === 'revising'
+                              ? '修订中'
+                              : '已完成'}
+                        </small>
+                      </span>
+                      {chapter?.chapter_id === ch.id && <span className="chapter-dot" />}
+                    </button>
+                  ))}
+                </div>
+                <div className="sidebar-note">
+                  <Feather size={17} />
+                  <p>
+                    不必等故事完整，
+                    <br />
+                    先写下你想写的一页。
+                  </p>
+                </div>
+              </aside>
+              <main className="writing-main">
+                <div className="document-header">
+                  <div>
+                    <span className="eyebrow">WRITING STUDIO</span>
+                    <h1>{currentMeta?.title}</h1>
+                  </div>
+                  <div className="document-actions">
+                    <span className="save-state" role="status">
+                      {saving ? (
+                        <>
+                          <LoaderCircle size={13} />
+                          保存中
+                        </>
+                      ) : dirty ? (
+                        '待保存'
+                      ) : (
+                        <>
+                          <Check size={13} />
+                          已保存到本地
+                        </>
+                      )}
+                    </span>
+                    <button
+                      className="subtle-button"
+                      disabled={busy || taskRunning}
+                      onClick={() =>
+                        void action(async () => {
+                          await flush();
+                          setHistory(
+                            (await rpc('branch.history', { branch_id: w.branch_id })).entries,
+                          );
+                          setModal('history');
+                        })
+                      }
+                    >
+                      版本历史
+                    </button>
+                    <button
+                      className="subtle-button"
+                      disabled={busy || taskRunning}
                       onClick={() => {
-                        setPlan(newPlan());
-                        setModal('plan');
+                        setTitle(currentMeta?.title ?? '');
+                        setModal('chapter');
                       }}
                     >
-                      <Plus size={18} />
+                      章节管理
+                    </button>
+                    <select
+                      className="export-format"
+                      aria-label="导出格式"
+                      value={exportFormat}
+                      onChange={(e) => setExportFormat(e.target.value as 'txt' | 'md')}
+                    >
+                      <option value="txt">TXT</option>
+                      <option value="md">Markdown</option>
+                    </select>
+                    <button
+                      className="subtle-button"
+                      disabled={busy}
+                      onClick={() =>
+                        void action(async () => {
+                          await flush();
+                          if (await exportBook(w.branch_id, exportFormat))
+                            setNotice('正文已导出，不含设定与候选');
+                        })
+                      }
+                    >
+                      <Download size={15} />
+                      导出
                     </button>
                   </div>
-                  <p className="muted small">
-                    可随时跳过规划，直接写作。设定与正文分别保存，分支间互不覆盖。
-                  </p>
-                  {w.planning.length === 0 ? (
-                    <div className="plan-empty">
-                      <Feather size={26} />
-                      <p>
-                        主角是谁？世界是什么模样？
-                        <br />
-                        把散落的想法留在这里。
-                      </p>
+                </div>
+                <div className="document-paper" role="region" aria-label="正文滚动区" tabIndex={0}>
+                  <Editor key={`${w.branch_id}:${chapter?.chapter_id}`} disabled={busy} />
+                </div>
+                <div className="document-footer">
+                  <span>
+                    {wordCount(text).toLocaleString()} 字 <span>·</span> 当前章节
+                  </span>
+                  <button onClick={() => void action(prepareNarration)}>
+                    <Headphones size={15} />
+                    试听本章
+                  </button>
+                  <span>正文修订独立保存</span>
+                </div>
+              </main>
+              <aside className="inspector" aria-label="写作与朗读面板" tabIndex={0}>
+                <div className="inspector-tabs">
+                  <button
+                    className={tab === 'writing' ? 'active' : ''}
+                    onClick={() => setTab('writing')}
+                  >
+                    <Sparkles size={15} />
+                    写作助手
+                  </button>
+                  <button
+                    className={tab === 'planning' ? 'active' : ''}
+                    onClick={() => setTab('planning')}
+                  >
+                    <BookOpen size={15} />
+                    故事设定
+                  </button>
+                </div>
+                {tab === 'planning' ? (
+                  <div className="inspector-body">
+                    <div className="panel-title">
+                      <h3>让世界逐渐清晰</h3>
                       <button
-                        className="outline-button"
+                        aria-label="添加设定"
                         onClick={() => {
                           setPlan(newPlan());
                           setModal('plan');
                         }}
                       >
-                        添加第一个设定
+                        <Plus size={18} />
                       </button>
                     </div>
-                  ) : (
-                    w.planning.map((entry) => (
-                      <button
-                        className="plan-card"
-                        key={entry.id}
-                        onClick={() => {
-                          setPlan({ ...entry });
-                          setModal('plan');
-                        }}
-                      >
-                        <span>
-                          {kindNames[entry.kind]}
-                          {entry.author_only ? ' · 作者秘密' : ''}
-                        </span>
-                        <h4>{entry.title}</h4>
-                        <p>{entry.text}</p>
-                        <small>
-                          {entry.context_role === 'planned_event' ? '未来计划 · 尚未发生' : '设定'}{' '}
-                          · 人工锁定
-                        </small>
-                      </button>
-                    ))
-                  )}
-                </div>
-              ) : (
-                <div className="inspector-body">
-                  <div className="demo-label">
-                    <span className="status-dot" />{' '}
-                    {llmId === 'demo'
-                      ? '本地演示模式 · 无网络调用'
-                      : llmConfig
-                        ? `${llmConfig.name} · ${llmConfig.model}`
-                        : '请先配置所选模型'}
+                    <p className="muted small">
+                      可随时跳过规划，直接写作。设定与正文分别保存，分支间互不覆盖。
+                    </p>
+                    {w.planning.length === 0 ? (
+                      <div className="plan-empty">
+                        <Feather size={26} />
+                        <p>
+                          主角是谁？世界是什么模样？
+                          <br />
+                          把散落的想法留在这里。
+                        </p>
+                        <button
+                          className="outline-button"
+                          onClick={() => {
+                            setPlan(newPlan());
+                            setModal('plan');
+                          }}
+                        >
+                          添加第一个设定
+                        </button>
+                      </div>
+                    ) : (
+                      w.planning.map((entry) => (
+                        <button
+                          className="plan-card"
+                          key={entry.id}
+                          onClick={() => {
+                            setPlan({ ...entry });
+                            setModal('plan');
+                          }}
+                        >
+                          <span>
+                            {kindNames[entry.kind]}
+                            {entry.author_only ? ' · 作者秘密' : ''}
+                          </span>
+                          <h4>{entry.title}</h4>
+                          <p>{entry.text}</p>
+                          <small>
+                            {entry.context_role === 'planned_event'
+                              ? '未来计划 · 尚未发生'
+                              : '设定'}{' '}
+                            · 人工锁定
+                          </small>
+                        </button>
+                      ))
+                    )}
                   </div>
-                  <h3>下一段故事，往哪里去？</h3>
-                  <p className="muted small">
-                    {llmId === 'demo'
-                      ? '描述开篇或本章目标。演示会返回固定样文，用于体验候选流程。'
-                      : '将依据已保存正文、创作意图和明确选中的设定生成候选。'}
-                  </p>
-                  <label className="field-label" htmlFor="llm-config">
-                    本次文本模型
+                ) : (
+                  <div className="inspector-body">
+                    <div className="demo-label">
+                      <span className="status-dot" />{' '}
+                      {llmId === 'demo'
+                        ? '本地演示模式 · 无网络调用'
+                        : llmConfig
+                          ? `${llmConfig.name} · ${llmConfig.model}`
+                          : '请先配置所选模型'}
+                    </div>
+                    <h3>
+                      {hasWritingContext ? '接着你的故事，继续写。' : '下一段故事，往哪里去？'}
+                    </h3>
+                    <p className="muted small">
+                      {llmId === 'demo'
+                        ? '演示会返回固定样文，用于体验候选流程。'
+                        : '留空意图即可承接已有正文；也可补充剧情方向，并参考明确选中的设定。'}
+                    </p>
+                    <label className="field-label" htmlFor="llm-config">
+                      本次文本模型
+                    </label>
+                    <select
+                      id="llm-config"
+                      className="field-select"
+                      value={llmId}
+                      disabled={taskRunning || busy}
+                      onChange={(e) => setLlmId(e.target.value)}
+                    >
+                      <option value="demo">本地演示 · 固定样文</option>
+                      {providerState.providers
+                        .filter((p) => p.kind === 'llm')
+                        .map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.name} · {p.model}
+                          </option>
+                        ))}
+                    </select>
+                    <button className="context-link" onClick={() => openSettings('llm')}>
+                      管理 LLM 配置
+                    </button>
+                    <label className="field-label" htmlFor="intent">
+                      本次创作意图
+                      <span className="muted small">（有前文时可选）</span>
+                    </label>
+                    <textarea
+                      id="intent"
+                      className="intent-input"
+                      placeholder={
+                        hasWritingContext
+                          ? '可留空，直接接着原文写；也可指定接下来的情节、视角或节奏。'
+                          : '先写一段正文，或在这里填写开篇想法，例如：一名修钟匠发现了时间的秘密……'
+                      }
+                      aria-describedby="writing-intent-hint"
+                      value={intent}
+                      onChange={(e) => setIntent(e.target.value)}
+                      disabled={taskRunning || busy}
+                      maxLength={2000}
+                    />
+                    <p id="writing-intent-hint" className="muted small">
+                      {hasWritingContext
+                        ? '不填时将沿用前文的人称与文风，从当前章节末尾续写；生成后由你确认接纳。'
+                        : '当前位置没有可续写的正文，请先写正文或填写开篇想法。'}
+                    </p>
+                    <label className="field-label" htmlFor="policy">
+                      上下文策略
+                    </label>
+                    <select
+                      id="policy"
+                      className="field-select"
+                      value={policy}
+                      disabled={taskRunning || busy}
+                      onChange={(e) => setPolicy(e.target.value as typeof policy)}
+                    >
+                      <option value="author_plan">作者规划 · 使用所选设定</option>
+                      <option value="reader_safe">读者无剧透 · 仅可见内容</option>
+                      <option value="full_rewrite">完整改写 · 明确选择范围</option>
+                    </select>
+                    {policy === 'full_rewrite' && (
+                      <div className="check-list">
+                        {w.chapters.map((ch) => (
+                          <label key={ch.id}>
+                            <input
+                              type="checkbox"
+                              checked={rewriteIds.includes(ch.id)}
+                              onChange={(e) =>
+                                setRewriteIds((old) =>
+                                  e.target.checked
+                                    ? [...old, ch.id]
+                                    : old.filter((id) => id !== ch.id),
+                                )
+                              }
+                            />
+                            {ch.title}
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                    {w.planning.length > 0 && (
+                      <details className="planning-select">
+                        <summary>选择本次参考设定（{selectedPlans.length}）</summary>
+                        {w.planning.map((entry) => (
+                          <label key={entry.id}>
+                            <input
+                              type="checkbox"
+                              checked={selectedPlans.includes(entry.id)}
+                              disabled={taskRunning || busy}
+                              onChange={(e) =>
+                                setSelectedPlans((old) =>
+                                  e.target.checked
+                                    ? [...old, entry.id]
+                                    : old.filter((id) => id !== entry.id),
+                                )
+                              }
+                            />
+                            <span>
+                              {entry.title}
+                              {entry.author_only ? ' · 作者秘密' : ''}
+                            </span>
+                          </label>
+                        ))}
+                      </details>
+                    )}
+                    <button
+                      className="context-link"
+                      disabled={busy}
+                      onClick={() =>
+                        void action(async () => {
+                          await flush();
+                          setContext(await rpc('writing.preview_context', target()));
+                          setModal('context');
+                        })
+                      }
+                    >
+                      查看本次上下文 <ArrowRight size={13} />
+                    </button>
+                    <button
+                      className="primary-button generate-button"
+                      disabled={
+                        busy ||
+                        (!taskRunning &&
+                          (externalDisabled || (!intent.trim() && !hasWritingContext)))
+                      }
+                      onClick={() =>
+                        void action(async () => {
+                          if (taskRunning && task)
+                            setTask(await rpc('task.cancel', { task_id: task.task_id }));
+                          else await generate();
+                        })
+                      }
+                    >
+                      {taskRunning ? (
+                        <>
+                          <Square size={15} />
+                          停止生成
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles size={16} />
+                          {!intent.trim() && hasWritingContext
+                            ? llmId === 'demo'
+                              ? '继续写（演示）'
+                              : '继续写'
+                            : llmId === 'demo'
+                              ? '生成演示候选'
+                              : '生成候选'}
+                        </>
+                      )}
+                    </button>
+                    <p className="privacy-note">
+                      写作位置：当前章节末尾
+                      <br />
+                      {llmId === 'demo'
+                        ? '演示不产生费用。'
+                        : `将发送已保存正文与所选规划至 ${llmConfig?.base_url ?? '所选服务'}；费用未知，以平台账单为准。`}
+                    </p>
+                    {externalDisabled && (
+                      <div className="warning" role="status">
+                        外部模型请求已关闭，{llmConfig?.name ?? '所选模型'}{' '}
+                        尚不能调用。保存模型配置后仍需开启总开关。
+                        <button className="context-link" onClick={() => openSettings('llm')}>
+                          前往设置开启外部模型请求
+                        </button>
+                      </div>
+                    )}
+                    {task && (
+                      <section className="candidate">
+                        <div className="candidate-header">
+                          <h4>
+                            {task.generation?.accepted
+                              ? '候选 · 已接纳到正文'
+                              : '候选 · 尚未写入正文'}
+                          </h4>
+                          <span>
+                            {taskRunning
+                              ? '生成中'
+                              : task.status === 'cancelled'
+                                ? '已停止'
+                                : task.status === 'failed'
+                                  ? '失败（保留已收到内容）'
+                                  : '已完成'}
+                          </span>
+                        </div>
+                        {task.message && (
+                          <p
+                            className={task.status === 'failed' ? 'warning' : 'small muted'}
+                            role={task.status === 'failed' ? 'alert' : undefined}
+                          >
+                            {task.message}
+                          </p>
+                        )}
+                        {task.usage && (
+                          <p className="small muted">
+                            已提交 {task.usage.requests_submitted} 次 · 输入{' '}
+                            {task.usage.input_tokens ?? '未知'} / 输出{' '}
+                            {task.usage.output_tokens ?? '未知'} tokens · 费用未知
+                          </p>
+                        )}
+                        <textarea
+                          aria-label="生成候选"
+                          readOnly
+                          value={task.generation?.text ?? ''}
+                          onSelect={(e) => {
+                            if (taskRunning) return;
+                            const el = e.currentTarget;
+                            if (el.selectionEnd > el.selectionStart) {
+                              setSelection([
+                                toCodePoint(el.value, el.selectionStart),
+                                toCodePoint(el.value, el.selectionEnd),
+                              ]);
+                              setAcceptText(el.value.slice(el.selectionStart, el.selectionEnd));
+                            }
+                          }}
+                        />
+                        {!taskRunning && task.generation && !task.generation.accepted && (
+                          <>
+                            <p className="small muted">可在上方选择片段，再编辑要接纳的文字。</p>
+                            <label className="field-label" htmlFor="accept-text">
+                              接纳内容（可编辑）
+                            </label>
+                            <textarea
+                              id="accept-text"
+                              value={acceptText}
+                              onChange={(e) => setAcceptText(e.target.value)}
+                            />
+                            <button
+                              className="primary-button"
+                              disabled={busy || !acceptText.trim() || selection[1] <= selection[0]}
+                              onClick={() => void action(accept)}
+                            >
+                              <Check size={15} />
+                              {selection[1] - selection[0] < [...task.generation.text].length
+                                ? '接纳选中片段'
+                                : '接纳候选'}
+                            </button>
+                          </>
+                        )}
+                        {task.generation?.accepted && (
+                          <p className="accepted-label">
+                            <Check size={15} />
+                            已接纳，正文已保存为新修订
+                          </p>
+                        )}
+                      </section>
+                    )}
+                  </div>
+                )}
+                <div className="narration-panel">
+                  <h4>
+                    <Headphones size={15} />
+                    普通朗读
+                  </h4>
+                  <label className="field-label" htmlFor="tts-config">
+                    语音服务与音色
                   </label>
                   <select
-                    id="llm-config"
+                    id="tts-config"
                     className="field-select"
-                    value={llmId}
-                    disabled={taskRunning || busy}
-                    onChange={(e) => setLlmId(e.target.value)}
+                    value={ttsId}
+                    disabled={audioTask?.status === 'running'}
+                    onChange={(e) => {
+                      setTtsId(e.target.value);
+                      setAudioTask(null);
+                    }}
                   >
-                    <option value="demo">本地演示 · 固定样文</option>
+                    <option value="">选择 TTS 配置</option>
                     {providerState.providers
-                      .filter((p) => p.kind === 'llm')
+                      .filter((p) => p.kind === 'tts')
                       .map((p) => (
                         <option key={p.id} value={p.id}>
-                          {p.name} · {p.model}
+                          {p.name} · {p.voice}
                         </option>
                       ))}
                   </select>
-                  <button className="context-link" onClick={() => openSettings('llm')}>
-                    管理 LLM 配置
+                  <button className="context-link" onClick={() => openSettings('tts')}>
+                    管理 TTS 配置
                   </button>
-                  <label className="field-label" htmlFor="intent">
-                    本次创作意图
-                  </label>
-                  <textarea
-                    id="intent"
-                    className="intent-input"
-                    placeholder="例如：一名修钟匠发现，全城的人每天都少活一分钟……"
-                    value={intent}
-                    onChange={(e) => setIntent(e.target.value)}
-                    disabled={taskRunning || busy}
-                    maxLength={2000}
-                  />
-                  <label className="field-label" htmlFor="policy">
-                    上下文策略
-                  </label>
-                  <select
-                    id="policy"
-                    className="field-select"
-                    value={policy}
-                    disabled={taskRunning || busy}
-                    onChange={(e) => setPolicy(e.target.value as typeof policy)}
-                  >
-                    <option value="author_plan">作者规划 · 使用所选设定</option>
-                    <option value="reader_safe">读者无剧透 · 仅可见内容</option>
-                    <option value="full_rewrite">完整改写 · 明确选择范围</option>
-                  </select>
-                  {policy === 'full_rewrite' && (
-                    <div className="check-list">
-                      {w.chapters.map((ch) => (
-                        <label key={ch.id}>
-                          <input
-                            type="checkbox"
-                            checked={rewriteIds.includes(ch.id)}
-                            onChange={(e) =>
-                              setRewriteIds((old) =>
-                                e.target.checked
-                                  ? [...old, ch.id]
-                                  : old.filter((id) => id !== ch.id),
-                              )
-                            }
-                          />
-                          {ch.title}
-                        </label>
-                      ))}
-                    </div>
-                  )}
-                  {w.planning.length > 0 && (
-                    <details className="planning-select">
-                      <summary>选择本次参考设定（{selectedPlans.length}）</summary>
-                      {w.planning.map((entry) => (
-                        <label key={entry.id}>
-                          <input
-                            type="checkbox"
-                            checked={selectedPlans.includes(entry.id)}
-                            disabled={taskRunning || busy}
-                            onChange={(e) =>
-                              setSelectedPlans((old) =>
-                                e.target.checked
-                                  ? [...old, entry.id]
-                                  : old.filter((id) => id !== entry.id),
-                              )
-                            }
-                          />
-                          <span>
-                            {entry.title}
-                            {entry.author_only ? ' · 作者秘密' : ''}
-                          </span>
-                        </label>
-                      ))}
-                    </details>
-                  )}
                   <button
-                    className="context-link"
+                    className="outline-button"
                     disabled={busy}
                     onClick={() =>
                       void action(async () => {
-                        await flush();
-                        setContext(await rpc('writing.preview_context', target()));
-                        setModal('context');
+                        if (audioTask?.status === 'running')
+                          setAudioTask(await rpc('task.cancel', { task_id: audioTask.task_id }));
+                        else await prepareNarration();
                       })
                     }
                   >
-                    查看本次上下文 <ArrowRight size={13} />
+                    {audioTask?.status === 'running' ? '停止合成' : '准备本章语音'}
                   </button>
-                  <button
-                    className="primary-button generate-button"
-                    disabled={busy || (!taskRunning && !intent.trim())}
-                    onClick={() =>
-                      void action(async () => {
-                        if (taskRunning && task)
-                          setTask(await rpc('task.cancel', { task_id: task.task_id }));
-                        else await generate();
-                      })
-                    }
-                  >
-                    {taskRunning ? (
-                      <>
-                        <Square size={15} />
-                        停止生成
-                      </>
-                    ) : (
-                      <>
-                        <Sparkles size={16} />
-                        {llmId === 'demo' ? '生成演示候选' : '生成候选'}
-                      </>
-                    )}
-                  </button>
-                  <p className="privacy-note">
-                    写作位置：当前章节末尾
-                    <br />
-                    {llmId === 'demo'
-                      ? '演示不产生费用。'
-                      : `将发送已保存正文与所选规划至 ${llmConfig?.base_url ?? '所选服务'}；费用未知，以平台账单为准。`}
-                    {llmId !== 'demo' && !providerState.external_enabled && (
-                      <>
+                  {audioTask && (
+                    <>
+                      <p className="small muted">
+                        {audioTask.message ?? '准备中…'}
                         <br />
-                        外部服务已关闭，请在模型设置中启用。
-                      </>
-                    )}
-                  </p>
-                  {task && (
-                    <section className="candidate">
-                      <div className="candidate-header">
-                        <h4>
-                          {task.generation?.accepted
-                            ? '候选 · 已接纳到正文'
-                            : '候选 · 尚未写入正文'}
-                        </h4>
-                        <span>
-                          {taskRunning
-                            ? '生成中'
-                            : task.status === 'cancelled'
-                              ? '已停止'
-                              : task.status === 'failed'
-                                ? '失败（保留已收到内容）'
-                                : '已完成'}
-                        </span>
-                      </div>
-                      {task.message && (
-                        <p
-                          className={task.status === 'failed' ? 'warning' : 'small muted'}
-                          role={task.status === 'failed' ? 'alert' : undefined}
-                        >
-                          {task.message}
-                        </p>
-                      )}
-                      {task.usage && (
-                        <p className="small muted">
-                          已提交 {task.usage.requests_submitted} 次 · 输入{' '}
-                          {task.usage.input_tokens ?? '未知'} / 输出{' '}
-                          {task.usage.output_tokens ?? '未知'} tokens · 费用未知
-                        </p>
-                      )}
-                      <textarea
-                        aria-label="生成候选"
-                        readOnly
-                        value={task.generation?.text ?? ''}
-                        onSelect={(e) => {
-                          if (taskRunning) return;
-                          const el = e.currentTarget;
-                          if (el.selectionEnd > el.selectionStart) {
-                            setSelection([
-                              toCodePoint(el.value, el.selectionStart),
-                              toCodePoint(el.value, el.selectionEnd),
-                            ]);
-                            setAcceptText(el.value.slice(el.selectionStart, el.selectionEnd));
+                        本次提交 {audioTask.usage?.requests_submitted ?? 0} 次 · 费用未知
+                      </p>
+                      {audioTask.audio && audioTask.audio.segments.length > 0 && (
+                        <AudioPlayer
+                          plan={audioTask.audio}
+                          stale={
+                            audioTask.audio.branch_id !== w.branch_id ||
+                            audioTask.audio.chapter_id !== chapter?.chapter_id ||
+                            audioTask.audio.revision !== currentMeta?.revision ||
+                            dirty
                           }
-                        }}
-                      />
-                      {!taskRunning && task.generation && !task.generation.accepted && (
-                        <>
-                          <p className="small muted">可在上方选择片段，再编辑要接纳的文字。</p>
-                          <label className="field-label" htmlFor="accept-text">
-                            接纳内容（可编辑）
-                          </label>
-                          <textarea
-                            id="accept-text"
-                            value={acceptText}
-                            onChange={(e) => setAcceptText(e.target.value)}
-                          />
-                          <button
-                            className="primary-button"
-                            disabled={busy || !acceptText.trim() || selection[1] <= selection[0]}
-                            onClick={() => void action(accept)}
-                          >
-                            <Check size={15} />
-                            {selection[1] - selection[0] < [...task.generation.text].length
-                              ? '接纳选中片段'
-                              : '接纳候选'}
-                          </button>
-                        </>
+                          onError={(value) => useWork.setState({ error: value })}
+                        />
                       )}
-                      {task.generation?.accepted && (
-                        <p className="accepted-label">
-                          <Check size={15} />
-                          已接纳，正文已保存为新修订
-                        </p>
-                      )}
-                    </section>
+                    </>
                   )}
                 </div>
-              )}
-              <div className="narration-panel">
-                <h4>
-                  <Headphones size={15} />
-                  普通朗读
-                </h4>
-                <label className="field-label" htmlFor="tts-config">
-                  语音服务与音色
-                </label>
-                <select
-                  id="tts-config"
-                  className="field-select"
-                  value={ttsId}
-                  disabled={audioTask?.status === 'running'}
-                  onChange={(e) => {
-                    setTtsId(e.target.value);
-                    setAudioTask(null);
-                  }}
-                >
-                  <option value="">选择 TTS 配置</option>
-                  {providerState.providers
-                    .filter((p) => p.kind === 'tts')
-                    .map((p) => (
-                      <option key={p.id} value={p.id}>
-                        {p.name} · {p.voice}
-                      </option>
-                    ))}
-                </select>
-                <button className="context-link" onClick={() => openSettings('tts')}>
-                  管理 TTS 配置
-                </button>
-                <button
-                  className="outline-button"
-                  disabled={busy}
-                  onClick={() =>
-                    void action(async () => {
-                      if (audioTask?.status === 'running')
-                        setAudioTask(await rpc('task.cancel', { task_id: audioTask.task_id }));
-                      else await prepareNarration();
-                    })
-                  }
-                >
-                  {audioTask?.status === 'running' ? '停止合成' : '准备本章语音'}
-                </button>
-                {audioTask && (
-                  <>
-                    <p className="small muted">
-                      {audioTask.message ?? '准备中…'}
-                      <br />
-                      本次提交 {audioTask.usage?.requests_submitted ?? 0} 次 · 费用未知
-                    </p>
-                    {audioTask.audio && audioTask.audio.segments.length > 0 && (
-                      <AudioPlayer
-                        plan={audioTask.audio}
-                        stale={
-                          audioTask.audio.branch_id !== w.branch_id ||
-                          audioTask.audio.chapter_id !== chapter?.chapter_id ||
-                          audioTask.audio.revision !== currentMeta?.revision ||
-                          dirty
-                        }
-                        onError={(value) => useWork.setState({ error: value })}
-                      />
-                    )}
-                  </>
-                )}
-              </div>
-              <div className="inspector-footer">
-                <CircleHelp size={14} /> 你的文字，由你决定。
-              </div>
-            </aside>
-          </div>
-        )}
+                <div className="inspector-footer">
+                  <CircleHelp size={14} /> 你的文字，由你决定。
+                </div>
+              </aside>
+            </div>
+          )}
+        </div>
       </div>
       {modal === 'create' && (
         <Modal title="新建作品" close={() => setModal(null)}>
@@ -1610,25 +1724,6 @@ export function App() {
               )}
             </div>
           )}
-        </Modal>
-      )}
-      {modal === 'settings' && (
-        <Modal
-          title="模型与语音设置"
-          close={() => {
-            setModal(null);
-            void refreshProviders();
-          }}
-        >
-          <ProviderSettings
-            initialKind={settingsKind}
-            state={providerState}
-            refresh={refreshProviders}
-            onSaved={(config) => {
-              if (config.kind === 'llm') setLlmId(config.id);
-              else setTtsId(config.id);
-            }}
-          />
         </Modal>
       )}
       {showNarrationConfirm && w && (

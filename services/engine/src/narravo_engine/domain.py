@@ -431,15 +431,29 @@ class Domain:
                 config.max_output_tokens if config else 2048,
             )
 
+    @staticmethod
+    def writing_intent(intent: str, context: c.ContextPreview) -> str:
+        if intent.strip():
+            return intent.strip()
+        require(
+            bool(context.preceding_text.strip()),
+            "EMPTY_INTENT",
+            "当前位置还没有可续写的正文。请先写一段正文，或填写一句开篇想法。",
+        )
+        return (
+            "承接已有正文，从末尾自然续写，保持原有的人称、时态、文风与情节连贯；"
+            "若前文句子尚未写完，先续完该句。只输出新增正文，不重复前文。"
+        )
+
     def writing_generate(self, p: c.Generate) -> c.Task:
-        require(bool(p.intent.strip()), "EMPTY_INTENT", "先写一句本次创作意图，再开始生成。")
         with self.db.transaction() as conn:
             state = self.state(conn, p.branch_id, p.expected_snapshot)
             context = self.context(conn, p)
+            intent = self.writing_intent(p.intent, context)
             chapter = self.chapter(state, p.chapter_id)
             generation_id, task_id = uid(), uid()
             # Deterministic local fixture. Never represents a model's actual writing quality.
-            candidate = f"【本地演示候选】\n{p.intent.strip()}\n\n窗外的雨渐渐停了。她合上手中的笔记，在空白的一页写下了新的日期。那个尚未得到回答的问题，再一次浮现在眼前。\n\n“从这里开始吧。”她轻声说。"
+            candidate = f"【本地演示候选】\n{intent}\n\n窗外的雨渐渐停了。她合上手中的笔记，在空白的一页写下了新的日期。那个尚未得到回答的问题，再一次浮现在眼前。\n\n“从这里开始吧。”她轻声说。"
             self.insert(
                 conn,
                 "generations",

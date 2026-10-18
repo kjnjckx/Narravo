@@ -628,8 +628,29 @@ button:not(:disabled):hover {
 .workspace {
   display: grid;
   grid-template-columns: 224px minmax(320px, 1fr) 318px;
-  height: calc(100vh - 78px);
-  min-height: 620px;
+  grid-template-rows: minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+@media (min-width: 851px) {
+  .workspace-shell {
+    height: 100dvh;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+  .workspace-shell > .topbar,
+  .workspace-shell > .error-banner,
+  .workspace-shell > .preview-banner {
+    flex-shrink: 0;
+  }
+  .workspace-shell > .surface-content {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
 }
 .chapter-panel {
   border-right: 1px solid var(--line);
@@ -638,6 +659,10 @@ button:not(:disabled):hover {
   flex-direction: column;
   min-height: 0;
   padding: 26px 16px;
+  overflow: hidden;
+}
+.chapter-panel > :not(.chapter-list) {
+  flex-shrink: 0;
 }
 .back-link {
   display: flex;
@@ -704,6 +729,7 @@ button:not(:disabled):hover {
 .chapter-list {
   overflow: auto;
   min-height: 0;
+  overscroll-behavior-y: contain;
 }
 .chapter-link {
   width: 100%;
@@ -761,11 +787,14 @@ button:not(:disabled):hover {
 }
 .writing-main {
   min-width: 0;
+  min-height: 0;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   background: #fcfbf7;
 }
 .document-header {
+  flex-shrink: 0;
   padding: 35px 34px 24px;
   display: flex;
   justify-content: space-between;
@@ -813,6 +842,7 @@ button:not(:disabled):hover {
   flex: 1;
   min-height: 0;
   overflow: auto;
+  overscroll-behavior-y: contain;
   position: relative;
   border-top: 1px solid #ecece2;
 }
@@ -878,6 +908,7 @@ button:not(:disabled):hover {
   color: #c7cbbb;
 }
 .document-footer {
+  flex-shrink: 0;
   border-top: 1px solid #ecece2;
   padding: 17px 34px;
   display: flex;
@@ -903,8 +934,17 @@ button:not(:disabled):hover {
   flex-direction: column;
   background: #f7f7f0;
   min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+}
+.inspector > * {
+  flex-shrink: 0;
 }
 .inspector-tabs {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f7f7f0;
   display: flex;
   padding: 21px 20px 0;
   gap: 22px;
@@ -925,8 +965,7 @@ button:not(:disabled):hover {
 }
 .inspector-body {
   padding: 24px 22px;
-  flex: 1;
-  overflow: auto;
+  flex: 0 0 auto;
 }
 .inspector h3 {
   font-family: var(--serif);
@@ -1404,7 +1443,9 @@ input[type='checkbox'] {
   }
   .workspace {
     grid-template-columns: 160px minmax(300px, 1fr);
+    grid-template-rows: auto;
     height: auto;
+    overflow: visible;
   }
   .inspector {
     grid-column: 1/-1;
@@ -1465,6 +1506,66 @@ input[type='checkbox'] {
   color: #99a78c;
   max-width: 82px;
   padding: 4px 0;
+}
+.settings-page {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 32px 48px 64px;
+}
+.settings-page-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin: 24px 0 30px;
+}
+.settings-page-heading h1 {
+  margin: 10px 0 12px;
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 500;
+  color: var(--green);
+}
+.settings-page-heading h1:focus {
+  outline: none;
+}
+.settings-page-heading > svg {
+  color: #8d9e80;
+}
+.settings-page-card {
+  padding: 30px 36px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #fcfcf7;
+}
+.settings-page .provider-editor > p {
+  margin-top: 16px;
+  line-height: 1.8;
+}
+.settings-page .provider-saved-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.settings-page .provider-saved-list > button {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 850px) {
+  .settings-page {
+    padding: 24px 20px 40px;
+  }
+  .settings-page-heading h1 {
+    font-size: 26px;
+  }
+  .settings-page-card {
+    padding: 22px 20px;
+  }
+  .settings-page .provider-saved-list,
+  .settings-page .provider-form-grid {
+    grid-template-columns: 1fr;
+  }
+  .settings-page .inline-actions {
+    flex-wrap: wrap;
+  }
 }
 .provider-settings .network-toggle {
   display: flex;

@@ -225,6 +225,50 @@ def test_empty_intent_rejected_before_task_creation(domain: Domain) -> None:
         )
 
 
+def test_default_continuation_uses_only_preceding_saved_text(domain: Domain) -> None:
+    text = "那是我高中的时候，😀"
+    w = save(domain, create(domain), text)
+    # Text beyond the anchor cannot enable an otherwise empty request.
+    with pytest.raises(DomainError) as error:
+        generate(domain, w, "")
+    assert error.value.code == "EMPTY_INTENT"
+    request = c.Generate(
+        branch_id=w.branch_id,
+        chapter_id=w.chapters[0].id,
+        offset=len(text),
+        context_policy="reader_safe",
+        intent=" \n ",
+        expected_snapshot=w.snapshot_id,
+        provider="demo",
+    )
+    task = complete(domain, domain.writing_generate(request))
+    assert task.generation and "从末尾自然续写" in task.generation.text
+    assert (
+        domain.chapter_get(c.ChapterTarget(branch_id=w.branch_id, chapter_id=w.chapters[0].id)).text
+        == text
+    )
+    # A new empty chapter can continue from the prior chapter without another intent.
+    w = domain.chapter_create(
+        c.ChapterCreate(branch_id=w.branch_id, expected_snapshot=w.snapshot_id, title="第二章")
+    )
+    task = complete(
+        domain,
+        domain.writing_generate(
+            request.model_copy(
+                update={
+                    "chapter_id": w.chapters[1].id,
+                    "offset": 0,
+                    "expected_snapshot": w.snapshot_id,
+                }
+            )
+        ),
+    )
+    assert task.generation
+    with domain.db.transaction() as conn:
+        context = domain.row(conn, "generations", task.generation.id)["payload"]["context"]
+        assert context["preceding_text"].strip() == text
+
+
 def test_context_separates_future_body_secrets_and_plans(domain: Domain) -> None:
     w = save(domain, create(domain), "第一章的已发生事实😀")
     w = domain.chapter_create(

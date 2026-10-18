@@ -248,7 +248,10 @@ async def finish(domain: Domain, task: c.Task) -> c.Task:
     return domain.task_get(c.TaskTarget(task_id=task.task_id))
 
 
-def test_real_task_uses_saved_context_keeps_candidate_and_records_usage(domain: Domain) -> None:
+@pytest.mark.parametrize("intent", ["描写王冠失踪", "", " \n "])
+def test_real_task_uses_saved_context_keeps_candidate_and_records_usage(
+    domain: Domain, intent: str
+) -> None:
     captured = []
 
     def reply(request: httpx.Request) -> httpx.Response:
@@ -269,6 +272,7 @@ def test_real_task_uses_saved_context_keeps_candidate_and_records_usage(domain: 
 
     item = setup(domain)
     workspace, request = writing_request(domain, item)
+    request = request.model_copy(update={"intent": intent})
     domain.providers.transport = Transport(httpx.MockTransport(reply))
 
     async def run() -> c.Task:
@@ -285,7 +289,8 @@ def test_real_task_uses_saved_context_keeps_candidate_and_records_usage(domain: 
     )
     assert (
         "很久以前" in captured[0]["messages"][1]["content"]
-        and "描写王冠失踪" in captured[0]["messages"][1]["content"]
+        and ("描写王冠失踪" if intent.strip() else "从末尾自然续写")
+        in captured[0]["messages"][1]["content"]
     )
     assert (
         result.usage
@@ -319,8 +324,13 @@ def test_disabled_service_empty_intent_and_endpoint_change_do_not_request(domain
             secret="fake-only",
             credential_endpoint="https://another.example/v1",
         )
-    with pytest.raises(DomainError):
-        domain.providers.start_writing(request.model_copy(update={"intent": " "}), "fake-only")
+    with pytest.raises(DomainError) as error:
+        # Existing text after the insertion point is not eligible continuation context.
+        domain.providers.start_writing(
+            request.model_copy(update={"intent": " ", "offset": 0}), "fake-only"
+        )
+    assert error.value.code == "EMPTY_INTENT"
+    assert not domain.providers.workers
 
 
 def test_unicode_split_full_coverage_and_cached_narration(domain: Domain) -> None:
